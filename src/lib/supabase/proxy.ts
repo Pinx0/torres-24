@@ -37,15 +37,6 @@ export async function updateSession(request: NextRequest) {
 
   const user = data?.claims
 
-  // Debug logging for auth callback flow
-  if (request.nextUrl.pathname === '/') {
-    const cookies = request.cookies.getAll()
-    console.log(`Middleware check for /: user=${!!user}, cookies=${cookies.length}`)
-    if (cookies.length > 0) {
-      console.log('Cookies present:', cookies.map(c => c.name).join(', '))
-    }
-  }
-
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&

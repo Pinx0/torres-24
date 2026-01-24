@@ -153,7 +153,7 @@ function SignUpForm() {
                     type="button"
                     variant="outline"
                     size="lg"
-                    className="w-full h-11 text-base font-semibold border-2 hover:bg-muted/50 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full h-11 text-base font-semibold border-2 hover:bg-accent/40 hover:border-accent/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     onClick={() => router.push("/login")}
                 >
                     <LogIn className="mr-2 size-4" />

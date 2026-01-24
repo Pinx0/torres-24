@@ -12,21 +12,21 @@ async function checkRateLimit(email: string): Promise<{ allowed: boolean; messag
 
   // Get or create rate limit record
   const { data: rateLimit, error: fetchError } = await adminClient
-    .from("signup_rate_limits")
+    .from("limites_registro")
     .select("*")
-    .eq("email", email)
+    .eq("correo", email)
     .single();
 
   if (fetchError && fetchError.code !== "PGRST116") {
     // PGRST116 is "not found" error, which is expected for new emails
-    console.error("Error fetching rate limit:", fetchError);
+    console.error("Error al obtener límite de registro:", fetchError);
     // Allow the request if we can't check rate limit (fail open for availability)
     return { allowed: true };
   }
 
-  // If blocked_until is in the future, reject immediately
-  if (rateLimit?.blocked_until) {
-    const blockedUntil = new Date(rateLimit.blocked_until);
+  // If bloqueado_hasta is in the future, reject immediately
+  if (rateLimit?.bloqueado_hasta) {
+    const blockedUntil = new Date(rateLimit.bloqueado_hasta);
     if (blockedUntil > now) {
       const minutesLeft = Math.ceil((blockedUntil.getTime() - now.getTime()) / 60000);
       return {
@@ -36,10 +36,10 @@ async function checkRateLimit(email: string): Promise<{ allowed: boolean; messag
     }
   }
 
-  // If last_attempt was more than RATE_LIMIT_WINDOW_MINUTES ago, reset attempts
-  let attempts = rateLimit?.attempts || 0;
-  if (rateLimit?.last_attempt) {
-    const lastAttempt = new Date(rateLimit.last_attempt);
+  // If ultimo_intento was more than RATE_LIMIT_WINDOW_MINUTES ago, reset intentos
+  let attempts = rateLimit?.intentos || 0;
+  if (rateLimit?.ultimo_intento) {
+    const lastAttempt = new Date(rateLimit.ultimo_intento);
     const minutesSinceLastAttempt = (now.getTime() - lastAttempt.getTime()) / 60000;
     if (minutesSinceLastAttempt > RATE_LIMIT_WINDOW_MINUTES) {
       attempts = 0;
@@ -50,12 +50,12 @@ async function checkRateLimit(email: string): Promise<{ allowed: boolean; messag
   if (attempts >= MAX_ATTEMPTS) {
     const blockedUntil = new Date(now.getTime() + RATE_LIMIT_WINDOW_MINUTES * 60000);
     await adminClient
-      .from("signup_rate_limits")
+      .from("limites_registro")
       .upsert({
-        email,
-        attempts: attempts + 1,
-        last_attempt: now.toISOString(),
-        blocked_until: blockedUntil.toISOString(),
+        correo: email,
+        intentos: attempts + 1,
+        ultimo_intento: now.toISOString(),
+        bloqueado_hasta: blockedUntil.toISOString(),
       });
 
     return {
@@ -65,27 +65,27 @@ async function checkRateLimit(email: string): Promise<{ allowed: boolean; messag
   }
 
   // Increment attempts and update last_attempt
-  await adminClient.from("signup_rate_limits").upsert({
-    email,
-    attempts: attempts + 1,
-    last_attempt: now.toISOString(),
-    blocked_until: null,
+  await adminClient.from("limites_registro").upsert({
+    correo: email,
+    intentos: attempts + 1,
+    ultimo_intento: now.toISOString(),
+    bloqueado_hasta: null,
   });
 
   return { allowed: true };
 }
 
-async function validatePhone(phone: string): Promise<{ valid: boolean; message?: string }> {
+async function validatePhone(phone: string): Promise<{ valid: boolean; message?: string; apartamento?: string }> {
   const adminClient = createAdminClient();
 
   // Normalize phone number (remove spaces, ensure + prefix)
   const normalizedPhone = phone.trim().replace(/\s+/g, "");
 
-  // Check if phone exists in valid_phones table
+  // Check if phone exists in telefonos_validos table
   const { data, error } = await adminClient
-    .from("valid_phones")
-    .select("phone, apartment, name")
-    .eq("phone", normalizedPhone)
+    .from("telefonos_validos")
+    .select("telefono, apartamento, nombre")
+    .eq("telefono", normalizedPhone)
     .single();
 
   if (error || !data) {
@@ -95,7 +95,7 @@ async function validatePhone(phone: string): Promise<{ valid: boolean; message?:
     };
   }
 
-  return { valid: true };
+  return { valid: true, apartamento: data.apartamento || undefined };
 }
 
 export async function signUpWithPhone(formData: FormData) {
@@ -117,10 +117,15 @@ export async function signUpWithPhone(formData: FormData) {
     return { error: rateLimitCheck.message || "Demasiados intentos. Por favor, espera antes de intentar de nuevo." };
   }
 
-  // Validate phone exists in valid_phones table
+  // Validate phone exists in telefonos_validos table
   const phoneValidation = await validatePhone(phone);
   if (!phoneValidation.valid) {
     return { error: phoneValidation.message || "El teléfono no está registrado" };
+  }
+
+  const apartamento = phoneValidation.apartamento;
+  if (!apartamento) {
+    return { error: "El teléfono no tiene un apartamento asociado. Contacta con Pablo." };
   }
 
   // Create user account using Supabase Auth
@@ -136,6 +141,28 @@ export async function signUpWithPhone(formData: FormData) {
     return { error: "Ya existe una cuenta con este correo electrónico. Por favor, inicia sesión." };
   }
 
+  // Verify that the vivienda exists
+  const { error: viviendaError } = await adminClient
+    .from("viviendas")
+    .select("codigo")
+    .eq("codigo", apartamento)
+    .single();
+
+  if (viviendaError) {
+    return { error: "El código de vivienda asociado al teléfono no existe en el sistema. Contacta con Pablo." };
+  }
+
+  // Verify that unidad_familiar exists (must exist beforehand)
+  const { error: unidadError } = await adminClient
+    .from("unidades_familiares")
+    .select("codigo_vivienda")
+    .eq("codigo_vivienda", apartamento)
+    .single();
+
+  if (unidadError) {
+    return { error: "La unidad familiar asociada al teléfono no existe en el sistema. Contacta con Pablo." };
+  }
+
   // Create user with email and phone in metadata using admin client
   const { data: newUser, error: signUpError } = await adminClient.auth.admin.createUser({
     email,
@@ -146,8 +173,22 @@ export async function signUpWithPhone(formData: FormData) {
   });
 
   if (signUpError || !newUser?.user) {
-    console.error("Error creating user:", signUpError);
+    console.error("Error al crear usuario:", signUpError);
     return { error: signUpError?.message || "Error al crear la cuenta. Por favor, intenta de nuevo." };
+  }
+
+  // Associate user with unidad familiar
+  const { error: asociacionError } = await adminClient
+    .from("usuarios_unidades_familiares")
+    .insert({
+      usuario_id: newUser.user.id,
+      unidad_familiar_codigo: apartamento,
+    });
+
+  if (asociacionError) {
+    console.error("Error al asociar usuario con unidad familiar:", asociacionError);
+    // User is created but association failed - this is a problem but we'll continue
+    // The user can still log in, but won't have a unidad familiar associated
   }
 
   // Send OTP email for verification using regular client
@@ -158,7 +199,7 @@ export async function signUpWithPhone(formData: FormData) {
   });
 
   if (otpSendError) {
-    console.error("Error sending OTP:", otpSendError);
+    console.error("Error al enviar código de verificación:", otpSendError);
     // If OTP fails, we should still allow the user to try logging in
     // The account is created, they just need to request a new OTP from login page
     return { 
@@ -168,9 +209,9 @@ export async function signUpWithPhone(formData: FormData) {
 
   // Reset rate limit on successful signup
   await adminClient
-    .from("signup_rate_limits")
+    .from("limites_registro")
     .delete()
-    .eq("email", email);
+    .eq("correo", email);
 
   return { success: true };
 }
