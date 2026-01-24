@@ -189,3 +189,11 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-orbitron), sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+}

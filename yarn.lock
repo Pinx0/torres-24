@@ -3848,27 +3848,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"motion@npm:^12.27.5":
-  version: 12.27.5
-  resolution: "motion@npm:12.27.5"
-  dependencies:
-    framer-motion: "npm:^12.27.5"
-    tslib: "npm:^2.4.0"
-  peerDependencies:
-    "@emotion/is-prop-valid": "*"
-    react: ^18.0.0 || ^19.0.0
-    react-dom: ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    "@emotion/is-prop-valid":
-      optional: true
-    react:
-      optional: true
-    react-dom:
-      optional: true
-  checksum: 10c0/9ac2a54922dd476d9a854f9eaebed54558f4a2f287af9bc3286c992bd512a9534a35884ce6b59fd9f0884934081b7fc7805982b48a48ab675db6d498334a34f7
-  languageName: node
-  linkType: hard
-
 "ms@npm:^2.1.1, ms@npm:^2.1.3":
   version: 2.1.3
   resolution: "ms@npm:2.1.3"
@@ -3896,11 +3875,11 @@ __metadata:
     eslint-config-next: "npm:16.1.4"
     framer-motion: "npm:^12.27.5"
     lucide-react: "npm:^0.562.0"
-    motion: "npm:^12.27.5"
     next: "npm:16.1.4"
     next-themes: "npm:^0.4.6"
     prettier: "npm:^3.8.0"
     react: "npm:19.2.3"
+    react-country-flag: "npm:^3.1.0"
     react-day-picker: "npm:^9.13.0"
     react-dom: "npm:19.2.3"
     recharts: "npm:2.15.4"
@@ -4290,6 +4269,15 @@ __metadata:
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: 10c0/900a93d3cdae3acd7d16f642c29a642aea32c2026446151f0778c62ac089d4b8e6c986811076e1ae180a694cedf077d453a11b58ff0a865629a4f82ab558e102
+  languageName: node
+  linkType: hard
+
+"react-country-flag@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "react-country-flag@npm:3.1.0"
+  peerDependencies:
+    react: ">=16"
+  checksum: 10c0/6271cde6cf355c66e2b669c74e98596d771534154210bbb84cd84788f46710c7ee14671229cb92203d09aeb4c30206bb882b73d63d95a73f96cdaca09ed2bd0d
   languageName: node
   linkType: hard
 
