@@ -25,7 +25,7 @@ export function AuthLayout({ children, message }: AuthLayoutProps) {
                     className="object-cover scale-105 transition-transform duration-700"
                     priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-br from-foreground/40 via-foreground/30 to-foreground/40" />
+                <div className="absolute inset-0 bg-linear-to-br from-foreground/40 via-foreground/30 to-foreground/40" />
                 <div className="absolute inset-0 bg-background/10" />
             </div>
 
@@ -56,7 +56,7 @@ export function AuthLayout({ children, message }: AuthLayoutProps) {
                                     initial={{ opacity: 0, y: 5 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.6, duration: 0.5 }}
-                                    className="text-5xl uppercase font-display tracking-[0.15em] bg-gradient-to-br from-foreground via-foreground to-foreground/90 bg-clip-text text-transparent leading-none"
+                                    className="text-5xl uppercase font-display tracking-[0.15em] bg-linear-to-br from-foreground via-foreground to-foreground/90 bg-clip-text text-transparent leading-none"
                                 >
                                     Torres 24
                                 </motion.h1>
