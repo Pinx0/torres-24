@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,12 +25,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Torres 24 - Portal del Vecino</title>
+        <meta name="description" content="Portal de la comunidad de propietarios Torres 24. Gestiona gastos, incidencias, parking y más." />
+        <meta name="author" content="Torres 24" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+
+        <meta property="og:title" content="Torres 24 - Portal del Vecino" />
+        <meta property="og:description" content="Portal de la comunidad de propietarios Torres 24. Gestiona gastos, incidencias, parking y más." />
+        <meta property="og:type" content="website" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@Torres24" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <Toaster />
-        {children}
+        <TooltipProvider>
+          <Toaster />
+          {children}
+        </TooltipProvider>
       </body>
     </html>
   );
