@@ -21,12 +21,12 @@ function getInitials(name?: string | null, email?: string | null): string {
       return nameParts[0].substring(0, 2).toUpperCase();
     }
   }
-  
+
   // Fallback to email
   if (email) {
     return email[0].toUpperCase();
   }
-  
+
   // Final fallback
   return "U";
 }
@@ -41,13 +41,11 @@ export function UserAvatar({ name, email }: UserAvatarProps) {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <button
-          className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
-          aria-label="User menu"
-        >
-          {initials}
-        </button>
+      <PopoverTrigger
+        className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-medium text-sm hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+        aria-label="User menu"
+      >
+        {initials}
       </PopoverTrigger>
       <PopoverContent align="end" side="bottom" className="w-56 p-2">
         <div className="px-2 py-1.5">
