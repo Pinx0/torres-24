@@ -3,7 +3,8 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/login/actions";
-import { LogOut } from "lucide-react";
+import { LogOut, User } from "lucide-react";
+import Link from "next/link";
 
 interface UserAvatarProps {
   name?: string | null;
@@ -54,7 +55,17 @@ export function UserAvatar({ name, email }: UserAvatarProps) {
             <p className="text-xs text-muted-foreground mt-0.5">{email}</p>
           )}
         </div>
-        <div className="border-t border-border mt-2 pt-2">
+        <div className="border-t border-border mt-2 pt-2 space-y-1">
+          <Link href="/mis-datos" className="block">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-left cursor-pointer"
+            >
+              <User className="mr-2 h-4 w-4" />
+              Mis datos
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             size="sm"
