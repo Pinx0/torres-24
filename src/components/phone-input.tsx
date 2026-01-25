@@ -139,25 +139,27 @@ export function PhoneInput({ value, onChange, onValidationChange, disabled, clas
             <div className="relative flex group">
                 {/* Selector de país */}
                 <Popover open={isOpen} onOpenChange={setIsOpen}>
-                    <PopoverTrigger>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="rounded-r-none border-r-0 h-10 px-3 flex items-center gap-2 shrink-0 bg-background/50 backdrop-blur-sm hover:bg-background/70 transition-all border-2 border-input border-r-transparent group-focus-within:border-primary/50"
-                            disabled={disabled}
-                        >
-                            <ReactCountryFlag
-                                countryCode={selectedCountry.code}
-                                svg
-                                style={{
-                                    width: '1.5em',
-                                    height: '1.5em',
-                                }}
-                                title={selectedCountry.name}
+                    <PopoverTrigger
+                        render={
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="rounded-r-none border-r-0 h-10 px-3 flex items-center gap-2 shrink-0 bg-background/50 backdrop-blur-sm hover:bg-background/70 transition-all border-2 border-input border-r-transparent group-focus-within:border-primary/50"
+                                disabled={disabled}
                             />
-                            <span className="text-sm font-semibold">{selectedCountry.dialCode}</span>
-                            <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
-                        </Button>
+                        }
+                    >
+                        <ReactCountryFlag
+                            countryCode={selectedCountry.code}
+                            svg
+                            style={{
+                                width: '1.5em',
+                                height: '1.5em',
+                            }}
+                            title={selectedCountry.name}
+                        />
+                        <span className="text-sm font-semibold">{selectedCountry.dialCode}</span>
+                        <ChevronDown className={cn("size-3.5 text-muted-foreground transition-transform duration-200", isOpen && "rotate-180")} />
                     </PopoverTrigger>
                     <PopoverContent className="w-80 p-0 shadow-xl border-2" align="start">
                         <div className="p-3 border-b bg-muted/30">

@@ -155,8 +155,8 @@ export async function signUpWithPhone(formData: FormData) {
   // Verify that unidad_familiar exists (must exist beforehand)
   const { error: unidadError } = await adminClient
     .from("unidades_familiares")
-    .select("codigo_vivienda")
-    .eq("codigo_vivienda", apartamento)
+    .select("codigo")
+    .eq("codigo", apartamento)
     .single();
 
   if (unidadError) {

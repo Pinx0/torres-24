@@ -3,15 +3,34 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export interface UserPossession {
+export interface Vivienda {
+  tipo: "vivienda";
   codigo: string;
   porcentaje_participacion: number;
+  numero_planta: number;
+  escalera: string;
 }
 
+export interface Garaje {
+  tipo: "garaje";
+  codigo: string;
+  porcentaje_participacion: number;
+  numero_planta: number;
+}
+
+export interface Trastero {
+  tipo: "trastero";
+  codigo: string;
+  porcentaje_participacion: number;
+  numero_planta: number;
+}
+
+export type UserPossession = Vivienda | Garaje | Trastero;
+
 export interface UserPossessions {
-  vivienda: UserPossession | null;
-  garajes: UserPossession[];
-  trasteros: UserPossession[];
+  vivienda: Vivienda | null;
+  garajes: Garaje[];
+  trasteros: Trastero[];
 }
 
 export async function getUserPossessions(): Promise<{ data: UserPossessions | null; error: string | null }> {
@@ -43,7 +62,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get vivienda (the unidad_familiar codigo is the vivienda codigo)
     const { data: vivienda, error: viviendaError } = await adminClient
       .from("viviendas")
-      .select("codigo, porcentaje_participacion")
+      .select("codigo, porcentaje_participacion, numero_planta, escalera")
       .eq("codigo", unidadFamiliarCodigo)
       .single();
 
@@ -54,7 +73,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get all garajes for this unidad_familiar
     const { data: garajes, error: garajesError } = await adminClient
       .from("garajes")
-      .select("codigo, porcentaje_participacion")
+      .select("codigo, porcentaje_participacion, numero_planta")
       .eq("unidad_familiar_codigo", unidadFamiliarCodigo)
       .order("codigo", { ascending: true });
 
@@ -65,7 +84,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get all trasteros for this unidad_familiar
     const { data: trasteros, error: trasterosError } = await adminClient
       .from("trasteros")
-      .select("codigo, porcentaje_participacion")
+      .select("codigo, porcentaje_participacion, numero_planta")
       .eq("unidad_familiar_codigo", unidadFamiliarCodigo)
       .order("codigo", { ascending: true });
 
@@ -76,16 +95,23 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     return {
       data: {
         vivienda: {
+          tipo: "vivienda",
           codigo: vivienda.codigo,
           porcentaje_participacion: Number(vivienda.porcentaje_participacion),
+          numero_planta: Number(vivienda.numero_planta),
+          escalera: vivienda.escalera || 'A',
         },
         garajes: (garajes || []).map((g) => ({
+          tipo: "garaje" as const,
           codigo: g.codigo,
           porcentaje_participacion: Number(g.porcentaje_participacion),
+          numero_planta: Number(g.numero_planta),
         })),
         trasteros: (trasteros || []).map((t) => ({
+          tipo: "trastero" as const,
           codigo: t.codigo,
           porcentaje_participacion: Number(t.porcentaje_participacion),
+          numero_planta: Number(t.numero_planta),
         })),
       },
       error: null,

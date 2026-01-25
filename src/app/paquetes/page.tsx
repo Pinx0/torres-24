@@ -5,7 +5,6 @@ import {
   getMyRequests,
   getAcceptedRequests,
 } from "./actions";
-import { PackageRequestCard } from "@/components/package-request-card";
 import { CreatePackageRequestDialog } from "@/components/create-package-request-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -12,11 +12,11 @@ CREATE TABLE IF NOT EXISTS public.solicitudes_paquetes (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT fk_solicitante_unidad_familiar FOREIGN KEY (solicitante_unidad_familiar_codigo) 
-        REFERENCES public.unidades_familiares(codigo_vivienda) 
+        REFERENCES public.unidades_familiares(codigo) 
         ON DELETE RESTRICT 
         ON UPDATE CASCADE,
     CONSTRAINT fk_aceptante_unidad_familiar FOREIGN KEY (aceptante_unidad_familiar_codigo) 
-        REFERENCES public.unidades_familiares(codigo_vivienda) 
+        REFERENCES public.unidades_familiares(codigo) 
         ON DELETE RESTRICT 
         ON UPDATE CASCADE
 );

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -34,7 +33,7 @@ export function CreatePackageRequestDialog({
     e.preventDefault();
 
     if (!description.trim()) {
-      toast.error("Por favor, ingresa una descripción del paquete");
+      toast.error("Por favor, indica cuándo llegará el paquete");
       return;
     }
 
@@ -55,42 +54,38 @@ export function CreatePackageRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2 shadow-sm">
-          <Plus className="size-4" />
-          Solicitar Recogida
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button className="gap-2 shadow-sm">
+            <Plus className="size-4" />
+            Solicitar Recogida
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
               <Package className="w-5 h-5" />
             </div>
-            <div>
-              <DialogTitle>Solicitar Recogida de Paquete</DialogTitle>
-              <DialogDescription>
-                Describe el paquete que necesitas que alguien recoja por ti
-              </DialogDescription>
+            <div className="space-y-2">
+              <DialogTitle>Solicitar recogida de paquete</DialogTitle>
             </div>
           </div>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-6">
             <div className="space-y-2">
-              <Label htmlFor="description">Descripción del paquete</Label>
+              <Label htmlFor="description">Cuándo llegará</Label>
               <Textarea
                 id="description"
-                placeholder="Ej: Paquete de Amazon, tamaño mediano, llegará el lunes..."
+                placeholder="Ej: Llegará el lunes por la tarde, el martes en la mañana, el 15 de febrero..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
                 disabled={isPending}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                Proporciona detalles que ayuden a identificar el paquete
-              </p>
             </div>
           </div>
           <DialogFooter>
@@ -103,7 +98,7 @@ export function CreatePackageRequestDialog({
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending || !description.trim()}>
-              {isPending ? "Creando..." : "Crear Solicitud"}
+              {isPending ? "Solicitando..." : "Solicitar"}
             </Button>
           </DialogFooter>
         </form>
