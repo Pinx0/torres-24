@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserPossessions } from "./actions";
@@ -47,11 +48,16 @@ export default async function MisDatosPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground mb-2">Mis datos</h1>
-        <p className="text-muted-foreground">
-          Consulta tus posesiones y sus porcentajes de participación
-        </p>
+      <div className="mb-6 space-y-2">
+        <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Volver al menú principal
+        </Link>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Mis datos</h1>
+          <p className="text-muted-foreground">
+            Consulta tus posesiones y sus porcentajes de participación
+          </p>
+        </div>
       </div>
 
       <div className="space-y-2">

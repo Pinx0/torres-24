@@ -2,25 +2,29 @@
 
 import { useState, useTransition } from "react";
 import { PackageRequestCard } from "./package-request-card";
-import { PackageRequestWithDetails, acceptRequest } from "@/app/paquetes/actions";
+import {
+  PackageRequestWithDetails,
+  acceptRequest,
+  cancelRequest,
+  completeRequest,
+} from "@/app/paquetes/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 interface PackageRequestsListProps {
   requests: PackageRequestWithDetails[];
   showActions?: boolean;
-  isMyRequest?: boolean;
   emptyMessage?: string;
 }
 
 export function PackageRequestsList({
   requests,
   showActions = false,
-  isMyRequest = false,
-  emptyMessage = "No hay solicitudes",
 }: PackageRequestsListProps) {
   const router = useRouter();
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [completingId, setCompletingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleAccept = (requestId: string) => {
@@ -38,6 +42,36 @@ export function PackageRequestsList({
     });
   };
 
+  const handleCancel = (requestId: string) => {
+    setCancelingId(requestId);
+    startTransition(async () => {
+      const result = await cancelRequest(requestId);
+
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Solicitud cancelada");
+        router.refresh();
+      }
+      setCancelingId(null);
+    });
+  };
+
+  const handleComplete = (requestId: string) => {
+    setCompletingId(requestId);
+    startTransition(async () => {
+      const result = await completeRequest(requestId);
+
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Solicitud marcada como resuelta");
+        router.refresh();
+      }
+      setCompletingId(null);
+    });
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {requests.map((request) => (
@@ -45,9 +79,12 @@ export function PackageRequestsList({
           key={request.id}
           request={request}
           onAccept={showActions ? handleAccept : undefined}
+          onCancel={handleCancel}
+          onComplete={handleComplete}
           isAccepting={acceptingId === request.id || isPending}
+          isCanceling={cancelingId === request.id || isPending}
+          isCompleting={completingId === request.id || isPending}
           showActions={showActions}
-          isMyRequest={isMyRequest}
         />
       ))}
     </div>

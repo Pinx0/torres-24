@@ -58,7 +58,7 @@ export function CreatePackageRequestDialog({
         render={
           <Button className="gap-2 shadow-sm">
             <Plus className="size-4" />
-            Solicitar Recogida
+            Solicitar recogida
           </Button>
         }
       />

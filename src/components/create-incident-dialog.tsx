@@ -59,7 +59,7 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
         render={
           <Button className="gap-2 shadow-sm">
             <Plus className="size-4" />
-            Crear Incidencia
+            Reportar incidencia
           </Button>
         }
       />
@@ -110,7 +110,7 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
               Cancelar
             </Button>
             <Button type="submit" disabled={isPending || !title.trim() || !description.trim()}>
-              {isPending ? "Creando..." : "Crear"}
+              {isPending ? "Reportando..." : "Reportar"}
             </Button>
           </DialogFooter>
         </form>

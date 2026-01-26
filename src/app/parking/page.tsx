@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -51,11 +52,16 @@ export default async function ParkingPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Gestión del Parking</h1>
-            <p className="text-muted-foreground">
-              Comparte tu plaza o solicita una cuando la necesites.
-            </p>
+          <div className="space-y-2">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Volver al menú principal
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">ParkShare™</h1>
+              <p className="text-muted-foreground">
+                Comparte tu plaza o solicita una cuando la necesites.
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <CreateParkingOfferDialog garajes={garajes} />

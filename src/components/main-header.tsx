@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import fachadaImg from "@/assets/fachada.png";
 import Image from "next/image";
-import Link from "next/link";
 
 export function MainHeader() {
   return (
@@ -15,10 +14,7 @@ export function MainHeader() {
         priority
       />
       <div className="absolute inset-0 bg-linear-to-b from-foreground/70 via-foreground/50 to-background" />
-      <Link
-        href="/"
-        className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 cursor-pointer transition-opacity hover:opacity-90"
-      >
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -37,7 +33,7 @@ export function MainHeader() {
             Torres 24
           </h1>
         </motion.div>
-      </Link>
+      </div>
     </div>
   );
 }

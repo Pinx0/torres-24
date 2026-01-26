@@ -101,7 +101,7 @@ export default async function IncidenciaDetailPage({ params }: IncidenciaDetailP
           ) : (
             <div className="space-y-4">
               {comentarios.map((comentario) => (
-                <div key={comentario.id} className="rounded-lg border border-border/60 p-4">
+                <div key={comentario.id} className="rounded-lg border border-border/60 p-4 bg-white">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-medium">
                       {comentario.autor_display ?? comentario.autor_unidad_familiar_codigo}

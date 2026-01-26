@@ -11,18 +11,28 @@ import { es } from "date-fns/locale/es";
 interface PackageRequestCardProps {
   request: PackageRequestWithDetails;
   onAccept?: (requestId: string) => void;
+  onCancel?: (requestId: string) => void;
+  onComplete?: (requestId: string) => void;
   isAccepting?: boolean;
+  isCanceling?: boolean;
+  isCompleting?: boolean;
   showActions?: boolean;
-  isMyRequest?: boolean;
 }
 
 export function PackageRequestCard({
   request,
   onAccept,
+  onCancel,
+  onComplete,
   isAccepting = false,
+  isCanceling = false,
+  isCompleting = false,
   showActions = false,
-  isMyRequest = false,
 }: PackageRequestCardProps) {
+  const solicitanteLabel = request.solicitante_display ?? request.solicitante_unidad_familiar_codigo;
+  const aceptanteLabel =
+    request.aceptante_display ?? request.aceptante_unidad_familiar_codigo ?? "Sin datos";
+
   const getStatusBadge = () => {
     switch (request.estado) {
       case "pendiente":
@@ -73,13 +83,12 @@ export function PackageRequestCard({
       <Card className="hover:shadow-lg transition-all duration-200 border-border/50">
         <CardHeader>
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3 flex-1">
+            <div className="flex items-center gap-3 flex-1">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
                 <Package className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base mb-1">Solicitud de Recogida</CardTitle>
-                <CardDescription className="line-clamp-2">{request.descripcion}</CardDescription>
+                <CardTitle className="text-base mb-1">{request.descripcion}</CardTitle>
               </div>
             </div>
             {getStatusBadge()}
@@ -90,18 +99,24 @@ export function PackageRequestCard({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="size-4" />
               <span>
-                {isMyRequest ? "Tu solicitud" : `Solicitante: ${request.solicitante_codigo}`}
+                Solicitante: {solicitanteLabel}
               </span>
             </div>
 
-            {request.estado === "aceptada" && request.aceptante_codigo && (
+            {request.estado === "pendiente" && request.isRequester && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle className="size-4" />
-                <span>
-                  Aceptada por: {isMyRequest ? request.aceptante_codigo : "Tu unidad familiar"}
-                </span>
+                <span>Aún sin aceptar</span>
               </div>
             )}
+
+            {(request.estado === "aceptada" || request.estado === "completada") &&
+              request.isRequester && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="size-4" />
+                  <span>Aceptada por: {aceptanteLabel}</span>
+                </div>
+              )}
 
             {request.estado === "aceptada" && request.fecha_aceptacion && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -143,7 +158,7 @@ export function PackageRequestCard({
               </div>
             )}
 
-            {showActions && request.estado === "pendiente" && !isMyRequest && onAccept && (
+            {showActions && request.estado === "pendiente" && !request.isRequester && onAccept && (
               <div className="pt-2">
                 <Button
                   onClick={() => onAccept(request.id)}
@@ -151,6 +166,31 @@ export function PackageRequestCard({
                   className="w-full"
                 >
                   {isAccepting ? "Aceptando..." : "Aceptar Solicitud"}
+                </Button>
+              </div>
+            )}
+
+            {request.isRequester && request.estado === "pendiente" && onCancel && (
+              <div className="pt-2">
+                <Button
+                  onClick={() => onCancel(request.id)}
+                  disabled={isCanceling}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {isCanceling ? "Cancelando..." : "Cancelar"}
+                </Button>
+              </div>
+            )}
+
+            {request.isRequester && request.estado === "aceptada" && onComplete && (
+              <div className="pt-2">
+                <Button
+                  onClick={() => onComplete(request.id)}
+                  disabled={isCompleting}
+                  className="w-full"
+                >
+                  {isCompleting ? "Marcando..." : "Marcar como resuelta"}
                 </Button>
               </div>
             )}

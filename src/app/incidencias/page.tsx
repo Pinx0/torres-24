@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,11 +25,16 @@ export default async function IncidenciasPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Incidencias</h1>
-            <p className="text-muted-foreground">
-              Reporta problemas y mantén a todos informados sobre su resolución.
-            </p>
+          <div className="space-y-2">
+            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Volver al menú principal
+            </Link>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de incidencias</h1>
+              <p className="text-muted-foreground">
+                Reporta problemas y mantén a todos informados sobre su resolución.
+              </p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <CreateIncidentDialog />

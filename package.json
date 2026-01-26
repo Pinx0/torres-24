@@ -19,6 +19,8 @@
     "supabase:migration:up": "supabase migration up"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
+    "@aws-sdk/s3-request-presigner": "^3.975.0",
     "@base-ui/react": "^1.1.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.0",

@@ -6,7 +6,7 @@ import FeatureCard from "@/components/feature-card";
 
 const features = [
   {
-    title: "Visor de Gastos",
+    title: "Visor de gastos",
     description: "Consulta las gráficas de gastos de la comunidad y conoce cuánto corresponde a cada vecino según su coeficiente.",
     icon: BarChart3,
     route: "/gastos",
@@ -18,20 +18,20 @@ const features = [
     route: "/documentacion",
   },
   {
-    title: "Gestión de Incidencias",
+    title: "Gestión de incidencias",
     description: "Reporta problemas con fotos, sigue el estado de resolución y mantén informados a todos los vecinos.",
     icon: AlertTriangle,
     route: "/incidencias",
   },
   {
-    title: "Gestión del Parking",
-    description: "Solicita una plaza cuando te visite alguien o comparte la tuya cuando te vayas de viaje.",
+    title: "ParkShare™",
+    description: "Solicita una plaza temporalmente para amigos o familiares y comparte la tuya cuando te vayas fuera.",
     icon: Car,
     route: "/parking",
   },
   {
-    title: "Recogida de Paquetes",
-    description: "¿No estarás en casa? Pide a un vecino que recoja tu paquete y coordina la entrega fácilmente.",
+    title: "Recogida de paquetes",
+    description: "¿No estarás en casa? Pide a un vecino que recoja tu paquete.",
     icon: Package,
     route: "/paquetes",
   },
@@ -41,7 +41,7 @@ const Index = () => {
   return (
     <div className="bg-background">
       {/* Features Grid */}
-      <div className="max-w-4xl mx-auto px-4 py-8 -mt-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
