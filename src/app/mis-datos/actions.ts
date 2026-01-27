@@ -9,6 +9,8 @@ export interface Vivienda {
   porcentaje_participacion: number;
   numero_planta: number;
   escalera: string;
+  superficie_util: number;
+  superficie_construida: number;
 }
 
 export interface Garaje {
@@ -16,6 +18,8 @@ export interface Garaje {
   codigo: string;
   porcentaje_participacion: number;
   numero_planta: number;
+  superficie_util: number;
+  superficie_construida: number;
 }
 
 export interface Trastero {
@@ -23,6 +27,8 @@ export interface Trastero {
   codigo: string;
   porcentaje_participacion: number;
   numero_planta: number;
+  superficie_util: number;
+  superficie_construida: number;
 }
 
 export type UserPossession = Vivienda | Garaje | Trastero;
@@ -62,7 +68,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get vivienda (the unidad_familiar codigo is the vivienda codigo)
     const { data: vivienda, error: viviendaError } = await adminClient
       .from("viviendas")
-      .select("codigo, porcentaje_participacion, numero_planta, escalera")
+      .select("codigo, porcentaje_participacion, numero_planta, escalera, superficie_util, superficie_construida")
       .eq("codigo", unidadFamiliarCodigo)
       .single();
 
@@ -73,7 +79,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get all garajes for this unidad_familiar
     const { data: garajes, error: garajesError } = await adminClient
       .from("garajes")
-      .select("codigo, porcentaje_participacion, numero_planta")
+      .select("codigo, porcentaje_participacion, numero_planta, superficie_util, superficie_construida")
       .eq("unidad_familiar_codigo", unidadFamiliarCodigo)
       .order("codigo", { ascending: true });
 
@@ -84,7 +90,7 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
     // Get all trasteros for this unidad_familiar
     const { data: trasteros, error: trasterosError } = await adminClient
       .from("trasteros")
-      .select("codigo, porcentaje_participacion, numero_planta")
+      .select("codigo, porcentaje_participacion, numero_planta, superficie_util, superficie_construida")
       .eq("unidad_familiar_codigo", unidadFamiliarCodigo)
       .order("codigo", { ascending: true });
 
@@ -100,18 +106,24 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
           porcentaje_participacion: Number(vivienda.porcentaje_participacion),
           numero_planta: Number(vivienda.numero_planta),
           escalera: vivienda.escalera || 'A',
+          superficie_util: Number(vivienda.superficie_util),
+          superficie_construida: Number(vivienda.superficie_construida),
         },
         garajes: (garajes || []).map((g) => ({
           tipo: "garaje" as const,
           codigo: g.codigo,
           porcentaje_participacion: Number(g.porcentaje_participacion),
           numero_planta: Number(g.numero_planta),
+          superficie_util: Number(g.superficie_util),
+          superficie_construida: Number(g.superficie_construida),
         })),
         trasteros: (trasteros || []).map((t) => ({
           tipo: "trastero" as const,
           codigo: t.codigo,
           porcentaje_participacion: Number(t.porcentaje_participacion),
           numero_planta: Number(t.numero_planta),
+          superficie_util: Number(t.superficie_util),
+          superficie_construida: Number(t.superficie_construida),
         })),
       },
       error: null,

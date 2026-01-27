@@ -86,9 +86,11 @@ export default async function MisDatosPage() {
                       {possessions.vivienda.porcentaje_participacion.toFixed(2)}%
                     </p>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                     <span>Escalera: {possessions.vivienda.escalera}</span>
                     <span>Planta: {possessions.vivienda.numero_planta}</span>
+                    <span>Sup. util: {possessions.vivienda.superficie_util.toFixed(2)} m2</span>
+                    <span>Sup. construida: {possessions.vivienda.superficie_construida.toFixed(2)} m2</span>
                   </div>
                 </div>
               </div>
@@ -127,7 +129,11 @@ export default async function MisDatosPage() {
                         {garaje.porcentaje_participacion.toFixed(2)}%
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">Planta: {garaje.numero_planta}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <span>Planta: {garaje.numero_planta}</span>
+                      <span>Sup. util: {garaje.superficie_util.toFixed(2)} m2</span>
+                      <span>Sup. construida: {garaje.superficie_construida.toFixed(2)} m2</span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -166,7 +172,11 @@ export default async function MisDatosPage() {
                         {trastero.porcentaje_participacion.toFixed(2)}%
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">Planta: {trastero.numero_planta}</p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      <span>Planta: {trastero.numero_planta}</span>
+                      <span>Sup. util: {trastero.superficie_util.toFixed(2)} m2</span>
+                      <span>Sup. construida: {trastero.superficie_construida.toFixed(2)} m2</span>
+                    </div>
                   </div>
                 ))}
               </div>
