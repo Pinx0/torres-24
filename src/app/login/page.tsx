@@ -18,11 +18,43 @@ function LoginForm() {
     const [otpSent, setOtpSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [emailInitialized, setEmailInitialized] = useState(false);
+    const [otpInitialized, setOtpInitialized] = useState(false);
+
+    const urlEmail = useMemo(() => {
+        return searchParams.get("email");
+    }, [searchParams]);
+
+    const urlOtp = useMemo(() => {
+        return searchParams.get("otp");
+    }, [searchParams]);
 
     const urlError = useMemo(() => {
         const error = searchParams.get("error");
         return error ? { type: "error" as const, text: decodeURIComponent(error) } : null;
     }, [searchParams]);
+
+    useEffect(() => {
+        if (urlEmail && !emailInitialized) {
+            startTransition(() => {
+                setEmail(urlEmail);
+                setEmailInitialized(true);
+            });
+        }
+    }, [urlEmail, emailInitialized]);
+
+    useEffect(() => {
+        if (urlOtp === "1" && urlEmail && !otpInitialized) {
+            startTransition(() => {
+                setOtpSent(true);
+                setMessage({
+                    type: "success",
+                    text: "¡Revisa tu correo! Te hemos enviado un código de verificación.",
+                });
+                setOtpInitialized(true);
+            });
+        }
+    }, [urlOtp, urlEmail, otpInitialized]);
 
     useEffect(() => {
         if (urlError) {

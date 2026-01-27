@@ -75,7 +75,8 @@ function SignUpForm() {
             });
             // Redirect to login after a short delay
             setTimeout(() => {
-                router.push("/login");
+                const nextUrl = `/login?email=${encodeURIComponent(email)}&otp=1`;
+                router.push(nextUrl);
             }, 2000);
         }
     };
