@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Package, Clock, CheckCircle, User, Calendar } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PackageRequestWithDetails } from "@/app/paquetes/actions";
 import { formatDistanceToNow } from "date-fns";

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { BarChart3, FileText, AlertTriangle, Car, Package } from "lucide-react";
 import FeatureCard from "@/components/feature-card";
 
@@ -42,17 +41,6 @@ const Index = () => {
     <div className="bg-background">
       {/* Features Grid */}
       <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <h2 className="text-xl font-semibold text-foreground text-center">
-            ¿Qué quieres hacer hoy?
-          </h2>
-        </motion.div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((feature, index) => (
             <FeatureCard
