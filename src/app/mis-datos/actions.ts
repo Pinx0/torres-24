@@ -65,12 +65,13 @@ export async function getUserPossessions(): Promise<{ data: UserPossessions | nu
 
     const unidadFamiliarCodigo = userUnidad.unidad_familiar_codigo;
 
-    // Get vivienda (the unidad_familiar codigo is the vivienda codigo)
     const { data: vivienda, error: viviendaError } = await adminClient
       .from("viviendas")
       .select("codigo, porcentaje_participacion, numero_planta, escalera, superficie_util, superficie_construida")
-      .eq("codigo", unidadFamiliarCodigo)
+      .eq("unidad_familiar_codigo", unidadFamiliarCodigo)
       .single();
+
+    console.log(viviendaError);
 
     if (viviendaError || !vivienda) {
       return { data: null, error: "No se encontró la vivienda asociada" };

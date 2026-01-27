@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
+import { PossessionSubcard } from "@/components/possession-subcard";
 import { Home, Car, Package } from "lucide-react";
 
 export default async function MisDatosPage() {
@@ -46,6 +47,12 @@ export default async function MisDatosPage() {
     );
   }
 
+  const totalParticipacion = [
+    possessions.vivienda?.porcentaje_participacion ?? 0,
+    ...possessions.garajes.map((garaje) => garaje.porcentaje_participacion),
+    ...possessions.trasteros.map((trastero) => trastero.porcentaje_participacion),
+  ].reduce((acc, value) => acc + value, 0);
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-6 space-y-2">
@@ -58,6 +65,15 @@ export default async function MisDatosPage() {
             Consulta tus posesiones y sus porcentajes de participación
           </p>
         </div>
+      </div>
+
+      <div className="mb-4 border-b border-border/60 bg-transparent px-4 pb-4 text-right">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Total cuota de participacion
+        </p>
+        <p className="mt-2 text-2xl font-semibold text-foreground">
+          {totalParticipacion.toFixed(2)}%
+        </p>
       </div>
 
       <div className="space-y-2">
@@ -79,20 +95,39 @@ export default async function MisDatosPage() {
             </div>
             {possessions.vivienda ? (
               <div className="space-y-1.5 pl-10">
-                <div className="p-2.5 bg-muted/50 rounded-lg border border-border/50">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-sm font-medium text-foreground">{possessions.vivienda.codigo}</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {possessions.vivienda.porcentaje_participacion.toFixed(2)}%
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                    <span>Escalera: {possessions.vivienda.escalera}</span>
-                    <span>Planta: {possessions.vivienda.numero_planta}</span>
-                    <span>Sup. util: {possessions.vivienda.superficie_util.toFixed(2)} m2</span>
-                    <span>Sup. construida: {possessions.vivienda.superficie_construida.toFixed(2)} m2</span>
-                  </div>
-                </div>
+                <PossessionSubcard
+                  columns={6}
+                  items={[
+                    {
+                      label: "Codigo",
+                      value: possessions.vivienda.codigo,
+                      prominent: true,
+                      fullSpan: true,
+                    },
+                    {
+                      label: "Escalera",
+                      value: possessions.vivienda.escalera,
+                    },
+                    {
+                      label: "Planta",
+                      value: possessions.vivienda.numero_planta,
+                    },
+                    {
+                      label: "Sup. util",
+                      value: `${possessions.vivienda.superficie_util.toFixed(2)} m2`,
+                    },
+                    {
+                      label: "Sup. construida",
+                      value: `${possessions.vivienda.superficie_construida.toFixed(2)} m2`,
+                    },
+                    {
+                      label: "Cuota",
+                      value: `${possessions.vivienda.porcentaje_participacion.toFixed(2)}%`,
+                      prominent: true,
+                      align: "right",
+                    },
+                  ]}
+                />
               </div>
             ) : (
               <p className="text-sm text-muted-foreground pl-10">No hay vivienda asociada</p>
@@ -119,22 +154,36 @@ export default async function MisDatosPage() {
             {possessions.garajes.length > 0 ? (
               <div className="space-y-1.5 pl-10">
                 {possessions.garajes.map((garaje) => (
-                  <div
+                  <PossessionSubcard
                     key={garaje.codigo}
-                    className="p-2.5 bg-muted/50 rounded-lg border border-border/50"
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-medium text-foreground">{garaje.codigo}</p>
-                      <p className="text-sm font-medium text-foreground">
-                        {garaje.porcentaje_participacion.toFixed(2)}%
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span>Planta: {garaje.numero_planta}</span>
-                      <span>Sup. util: {garaje.superficie_util.toFixed(2)} m2</span>
-                      <span>Sup. construida: {garaje.superficie_construida.toFixed(2)} m2</span>
-                    </div>
-                  </div>
+                    columns={5}
+                    items={[
+                      {
+                        label: "Codigo",
+                        value: garaje.codigo,
+                        prominent: true,
+                        fullSpan: true,
+                      },
+                      {
+                        label: "Planta",
+                        value: garaje.numero_planta,
+                      },
+                      {
+                        label: "Sup. util",
+                        value: `${garaje.superficie_util.toFixed(2)} m2`,
+                      },
+                      {
+                        label: "Sup. construida",
+                        value: `${garaje.superficie_construida.toFixed(2)} m2`,
+                      },
+                      {
+                        label: "Cuota",
+                        value: `${garaje.porcentaje_participacion.toFixed(2)}%`,
+                        prominent: true,
+                        align: "right",
+                      },
+                    ]}
+                  />
                 ))}
               </div>
             ) : (
@@ -162,22 +211,36 @@ export default async function MisDatosPage() {
             {possessions.trasteros.length > 0 ? (
               <div className="space-y-1.5 pl-10">
                 {possessions.trasteros.map((trastero) => (
-                  <div
+                  <PossessionSubcard
                     key={trastero.codigo}
-                    className="p-2.5 bg-muted/50 rounded-lg border border-border/50"
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-sm font-medium text-foreground">{trastero.codigo}</p>
-                      <p className="text-sm font-medium text-foreground">
-                        {trastero.porcentaje_participacion.toFixed(2)}%
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-                      <span>Planta: {trastero.numero_planta}</span>
-                      <span>Sup. util: {trastero.superficie_util.toFixed(2)} m2</span>
-                      <span>Sup. construida: {trastero.superficie_construida.toFixed(2)} m2</span>
-                    </div>
-                  </div>
+                    columns={5}
+                    items={[
+                      {
+                        label: "Codigo",
+                        value: trastero.codigo,
+                        prominent: true,
+                        fullSpan: true,
+                      },
+                      {
+                        label: "Planta",
+                        value: trastero.numero_planta,
+                      },
+                      {
+                        label: "Sup. util",
+                        value: `${trastero.superficie_util.toFixed(2)} m2`,
+                      },
+                      {
+                        label: "Sup. construida",
+                        value: `${trastero.superficie_construida.toFixed(2)} m2`,
+                      },
+                      {
+                        label: "Cuota",
+                        value: `${trastero.porcentaje_participacion.toFixed(2)}%`,
+                        prominent: true,
+                        align: "right",
+                      },
+                    ]}
+                  />
                 ))}
               </div>
             ) : (
