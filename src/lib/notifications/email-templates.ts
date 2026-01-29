@@ -1,6 +1,6 @@
 export const EMAIL_TEMPLATE_IDS = {
   // Actualiza este ID con el template de Brevo correspondiente.
-  parkingRequestSameFloor: 0,
+  parkingRequestSameFloor: 1,
 } as const;
 
 export function isValidTemplateId(templateId: number) {
