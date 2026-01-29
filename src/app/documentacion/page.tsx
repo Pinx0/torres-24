@@ -12,12 +12,12 @@ import { DocumentsList } from "@/components/documents-list";
 export const dynamic = "force-dynamic";
 
 interface DocumentacionPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     q?: string;
     tipo?: string;
     orderBy?: string;
     orderDir?: string;
-  };
+  }>;
 }
 
 export default async function DocumentacionPage({ searchParams }: DocumentacionPageProps) {
@@ -28,15 +28,16 @@ export default async function DocumentacionPage({ searchParams }: DocumentacionP
     redirect("/login");
   }
 
-  const orderBy = searchParams?.orderBy === "titulo" ? "titulo" : "fecha";
-  const orderDir = searchParams?.orderDir === "asc" ? "asc" : "desc";
+  const resolvedSearchParams = await Promise.resolve(searchParams);
+  const orderBy = resolvedSearchParams?.orderBy === "titulo" ? "titulo" : "fecha";
+  const orderDir = resolvedSearchParams?.orderDir === "asc" ? "asc" : "desc";
   const paramsKey = new URLSearchParams(
-    Object.entries(searchParams ?? {}).filter(([, value]) => typeof value === "string")
+    Object.entries(resolvedSearchParams ?? {}).filter(([, value]) => typeof value === "string")
   ).toString();
 
   const documentosResult = await listDocumentos({
-    search: searchParams?.q,
-    tipo: searchParams?.tipo,
+    search: resolvedSearchParams?.q,
+    tipo: resolvedSearchParams?.tipo,
     orderBy,
     orderDir,
   });
