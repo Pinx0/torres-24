@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Filter, Search } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 
 import { DOCUMENT_TYPES } from "@/lib/document-types";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const selectClassName =
@@ -22,6 +23,8 @@ export function DocumentFilters() {
   const currentOrderDir = searchParams.get("orderDir") ?? "desc";
 
   const currentOrderValue = `${currentOrderBy}-${currentOrderDir}`;
+  const hasActiveFilters =
+    query.trim().length > 0 || currentTipo.length > 0 || currentOrderValue !== "fecha-desc";
 
   const updateParams = useCallback((updates: {
     q?: string | null;
@@ -90,10 +93,19 @@ export function DocumentFilters() {
     []
   );
 
+  const handleClearFilters = () => {
+    setQuery("");
+    updateParams({ q: null, tipo: null, orderBy: null, orderDir: null });
+  };
+
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-      <div className="flex-1">
-        <div className="relative">
+      <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Filter className="size-4" />
+          <span>Filtros</span>
+        </div>
+        <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
@@ -104,10 +116,6 @@ export function DocumentFilters() {
         </div>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Filter className="size-4" />
-          <span>Filtros</span>
-        </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <select
             className={selectClassName}
@@ -135,6 +143,17 @@ export function DocumentFilters() {
               </option>
             ))}
           </select>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+            className="justify-center"
+          >
+            <X />
+            Limpiar filtros
+          </Button>
         </div>
       </div>
     </div>

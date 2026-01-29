@@ -31,10 +31,6 @@ export default async function DocumentacionPage({ searchParams }: DocumentacionP
   const resolvedSearchParams = await Promise.resolve(searchParams);
   const orderBy = resolvedSearchParams?.orderBy === "titulo" ? "titulo" : "fecha";
   const orderDir = resolvedSearchParams?.orderDir === "asc" ? "asc" : "desc";
-  const paramsKey = new URLSearchParams(
-    Object.entries(resolvedSearchParams ?? {}).filter(([, value]) => typeof value === "string")
-  ).toString();
-
   const documentosResult = await listDocumentos({
     search: resolvedSearchParams?.q,
     tipo: resolvedSearchParams?.tipo,
@@ -59,7 +55,7 @@ export default async function DocumentacionPage({ searchParams }: DocumentacionP
         <CreateDocumentDialog />
       </div>
 
-      <DocumentFilters key={paramsKey} />
+      <DocumentFilters />
 
       {documentosResult.error ? (
         <Card>

@@ -1,7 +1,11 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { buildDocumentKey, createDownloadUrl, createUploadUrl } from "@/lib/r2";
+import {
+  buildDocumentPath,
+  createDocumentDownloadUrl,
+  createDocumentUploadUrl,
+} from "@/lib/supabase/storage";
 import { DOCUMENT_TYPE_SET, type DocumentType } from "@/lib/document-types";
 
 export interface Documento {
@@ -20,7 +24,9 @@ export interface Documento {
 
 function normalizeTipo(tipo?: string | null) {
   if (!tipo) return null;
-  return DOCUMENT_TYPE_SET.has(tipo as DocumentType) ? (tipo as DocumentType) : null;
+  return DOCUMENT_TYPE_SET.has(tipo as DocumentType)
+    ? (tipo as DocumentType)
+    : null;
 }
 
 export async function listDocumentos(params?: {
@@ -31,7 +37,10 @@ export async function listDocumentos(params?: {
 }): Promise<{ data: Documento[]; error: string | null }> {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { data: [], error: "Usuario no autenticado" };
@@ -59,7 +68,10 @@ export async function listDocumentos(params?: {
 
     if (error) {
       console.error("Error al obtener documentos:", error);
-      return { data: [], error: error.message || "Error al obtener documentos" };
+      return {
+        data: [],
+        error: error.message || "Error al obtener documentos",
+      };
     }
 
     const documentos = (data || []) as Documento[];
@@ -67,13 +79,16 @@ export async function listDocumentos(params?: {
     const documentosConUrl = await Promise.all(
       documentos.map(async (doc) => {
         try {
-          const downloadUrl = await createDownloadUrl({ key: doc.r2_key, expiresIn: 60 * 10 });
+          const downloadUrl = await createDocumentDownloadUrl({
+            path: doc.r2_key,
+            expiresIn: 60 * 10,
+          });
           return { ...doc, download_url: downloadUrl };
         } catch (err) {
           console.error("Error al generar URL de descarga:", err);
           return { ...doc, download_url: null };
         }
-      })
+      }),
     );
 
     return { data: documentosConUrl, error: null };
@@ -90,26 +105,27 @@ export async function createDocumentoUploadUrl(params: {
   fileName: string;
   contentType: string;
   sizeBytes: number;
-}): Promise<{ data: { uploadUrl: string; r2Key: string } | null; error: string | null }> {
+}): Promise<{
+  data: { uploadUrl: string; r2Key: string } | null;
+  error: string | null;
+}> {
   try {
     if (!params.fileName?.trim()) {
       return { data: null, error: "Nombre de archivo inválido" };
     }
 
     const supabase = await createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { data: null, error: "Usuario no autenticado" };
     }
 
-    const r2Key = buildDocumentKey(user.id, params.fileName);
-    const uploadUrl = await createUploadUrl({
-      key: r2Key,
-      contentType: params.contentType || "application/octet-stream",
-      sizeBytes: params.sizeBytes,
-      expiresIn: 60 * 10,
-    });
+    const r2Key = buildDocumentPath(user.id, params.fileName);
+    const uploadUrl = await createDocumentUploadUrl({ path: r2Key });
 
     return { data: { uploadUrl, r2Key }, error: null };
   } catch (error) {
@@ -143,7 +159,10 @@ export async function createDocumento(params: {
     }
 
     const supabase = await createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { data: null, error: "Usuario no autenticado" };
