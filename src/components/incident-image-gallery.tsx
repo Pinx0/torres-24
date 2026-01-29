@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 
 interface IncidentImage {
   id: string;
@@ -90,11 +90,15 @@ export function IncidentImageGallery({
                 />
               </div>
               <div className="flex justify-end">
-                <Button asChild>
-                  <a href={selected.download_url} download target="_blank" rel="noreferrer">
-                    Descargar imagen
-                  </a>
-                </Button>
+                <a
+                  href={selected.download_url ?? ""}
+                  download
+                  target="_blank"
+                  rel="noreferrer"
+                  className={buttonVariants()}
+                >
+                  Descargar imagen
+                </a>
               </div>
               {availableImages.length > 1 ? (
                 <div className="grid gap-2 sm:grid-cols-3">

@@ -2,6 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTransactionalEmail } from "@/lib/notifications/brevo";
+import { buildEmailForEvent } from "@/lib/notifications/email-events";
+import { getNeighborEmailsByFloor } from "@/lib/notifications/parking-recipients";
 
 export interface ParkingOffer {
   id: string;
@@ -459,8 +462,8 @@ export async function createParkingRequest(
       };
     }
 
-    const { codigo, error } = await getUserFamilyUnit();
-    if (error || !codigo) {
+    const { userId, familyCode, error } = await getCurrentUserContext();
+    if (error || !familyCode) {
       return {
         data: null,
         error: error || "No se pudo obtener la unidad familiar",
@@ -471,7 +474,7 @@ export async function createParkingRequest(
     const { data: request, error: insertError } = await adminClient
       .from("solicitudes_parking")
       .insert({
-        solicitante_unidad_familiar_codigo: codigo,
+        solicitante_unidad_familiar_codigo: familyCode,
         planta_solicitada: plantaSolicitada,
         fecha_inicio: fechaInicio,
         fecha_fin: fechaFin,
@@ -486,6 +489,53 @@ export async function createParkingRequest(
         data: null,
         error: insertError?.message || "Error al crear la solicitud",
       };
+    }
+
+    try {
+      const recipientEmails = await getNeighborEmailsByFloor(
+        adminClient,
+        plantaSolicitada,
+        familyCode,
+      );
+
+      if (recipientEmails.length > 0) {
+        const cache = new Map<string, string>();
+        const solicitanteNombre = userId
+          ? await getUserDisplayName(adminClient, userId, familyCode, cache)
+          : `Unidad ${familyCode}`;
+
+        const emailPayload = buildEmailForEvent({
+          event: "parking_request_same_floor",
+          data: {
+            solicitudId: request.id,
+            plantaSolicitada,
+            fechaInicio,
+            fechaFin,
+            solicitanteNombre,
+          },
+        });
+
+        if (!emailPayload) {
+          console.warn(
+            "Template de email no configurado para parking_request_same_floor",
+          );
+        } else {
+          const emailResult = await sendTransactionalEmail({
+            to: recipientEmails.map((email) => ({ email })),
+            templateId: emailPayload.templateId,
+            params: emailPayload.params,
+          });
+
+          if (!emailResult.success && !emailResult.skipped) {
+            console.error(
+              "Error al enviar notificación por email:",
+              emailResult.error,
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error preparando notificación de parking:", error);
     }
 
     return { data: request as ParkingRequest, error: null };
