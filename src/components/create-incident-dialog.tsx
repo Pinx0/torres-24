@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -16,7 +16,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { createIncidencia } from "@/app/incidencias/actions";
+import { createIncidencia, createIncidenciaUploadUrl } from "@/app/incidencias/actions";
+
+const MAX_IMAGES = 5;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 interface CreateIncidentDialogProps {
   onSuccess?: () => void;
@@ -28,6 +32,9 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [images, setImages] = useState<File[]>([]);
+
+  const imageNames = useMemo(() => images.map((image) => image.name), [images]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -37,8 +44,65 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
       return;
     }
 
+    if (images.length > MAX_IMAGES) {
+      toast.error(`Solo puedes adjuntar hasta ${MAX_IMAGES} imágenes`);
+      return;
+    }
+
+    for (const image of images) {
+      if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+        toast.error("Solo se permiten imágenes JPG, PNG o WebP");
+        return;
+      }
+      if (image.size > MAX_IMAGE_SIZE) {
+        toast.error("Alguna imagen supera los 10MB");
+        return;
+      }
+    }
+
     startTransition(async () => {
-      const result = await createIncidencia(title.trim(), description.trim());
+      const uploadedImages: { path: string; mimeType: string; sizeBytes: number }[] = [];
+
+      for (const image of images) {
+        const uploadResult = await createIncidenciaUploadUrl({
+          fileName: image.name,
+          contentType: image.type,
+          sizeBytes: image.size,
+        });
+
+        if (uploadResult.error || !uploadResult.data) {
+          toast.error(uploadResult.error || "No se pudo preparar la subida");
+          return;
+        }
+
+        let uploadResponse: Response;
+        try {
+          uploadResponse = await fetch(uploadResult.data.uploadUrl, {
+            method: "PUT",
+            headers: {
+              "Content-Type": image.type || "application/octet-stream",
+            },
+            body: image,
+          });
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Error desconocido";
+          toast.error(`No se pudo subir una imagen: ${message}`);
+          return;
+        }
+
+        if (!uploadResponse.ok) {
+          toast.error(`No se pudo subir una imagen (HTTP ${uploadResponse.status})`);
+          return;
+        }
+
+        uploadedImages.push({
+          path: uploadResult.data.r2Key,
+          mimeType: image.type || "application/octet-stream",
+          sizeBytes: image.size,
+        });
+      }
+
+      const result = await createIncidencia(title.trim(), description.trim(), uploadedImages);
 
       if (result.error) {
         toast.error(result.error);
@@ -46,6 +110,7 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
         toast.success("Incidencia creada");
         setTitle("");
         setDescription("");
+        setImages([]);
         setOpen(false);
         router.refresh();
         onSuccess?.();
@@ -98,6 +163,32 @@ export function CreateIncidentDialog({ onSuccess }: CreateIncidentDialogProps) {
                 disabled={isPending}
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="incident-images">Adjuntar imágenes (opcional)</Label>
+              <Input
+                id="incident-images"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                onChange={(event) => setImages(Array.from(event.target.files ?? []))}
+                disabled={isPending}
+              />
+              {imageNames.length > 0 ? (
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>
+                    {imageNames.length} imagen{imageNames.length === 1 ? "" : "es"} seleccionada
+                  </p>
+                  <ul className="list-disc pl-4 space-y-0.5">
+                    {imageNames.map((name) => (
+                      <li key={name}>{name}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <p className="text-xs text-muted-foreground">
+                Hasta {MAX_IMAGES} imágenes. Máximo 10MB por imagen. JPG, PNG o WebP.
+              </p>
             </div>
           </div>
           <DialogFooter>

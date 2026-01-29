@@ -5,6 +5,7 @@ import { es } from "date-fns/locale/es";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { IncidentCommentForm, IncidentResolveButton } from "@/components/incident-detail-actions";
+import { IncidentImageGallery } from "@/components/incident-image-gallery";
 import { getIncidenciaDetalle } from "../actions";
 
 interface IncidenciaDetailPageProps {
@@ -81,6 +82,9 @@ export default async function IncidenciaDetailPage({ params }: IncidenciaDetailP
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">{incidencia.descripcion}</p>
+          {incidencia.adjuntos && incidencia.adjuntos.length > 0 ? (
+            <IncidentImageGallery title="Adjuntos de la incidencia" images={incidencia.adjuntos} />
+          ) : null}
           {incidencia.resolved_at ? (
             <div className="text-xs text-muted-foreground">
               Resuelta el {format(new Date(incidencia.resolved_at), "PPpp", { locale: es })}
@@ -111,6 +115,15 @@ export default async function IncidenciaDetailPage({ params }: IncidenciaDetailP
                     </span>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">{comentario.mensaje}</p>
+                  {comentario.adjuntos && comentario.adjuntos.length > 0 ? (
+                    <div className="mt-3">
+                      <IncidentImageGallery
+                        title="Adjuntos del comentario"
+                        images={comentario.adjuntos}
+                        thumbnailHeight="h-32"
+                      />
+                    </div>
+                  ) : null}
                 </div>
               ))}
             </div>

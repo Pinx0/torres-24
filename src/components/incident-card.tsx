@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { format } from "date-fns";
 import { es } from "date-fns/locale/es";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Image } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Incidencia } from "@/app/incidencias/actions";
 
@@ -46,8 +46,14 @@ export function IncidentCard({ incident }: IncidentCardProps) {
             <p className="text-sm text-muted-foreground line-clamp-2">
               {incident.descripcion}
             </p>
-            <div className="text-xs text-muted-foreground">
-              Creada: {format(new Date(incident.created_at), "PPpp", { locale: es })}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Creada: {format(new Date(incident.created_at), "PPpp", { locale: es })}</span>
+              {incident.adjuntos_count ? (
+                <span className="inline-flex items-center gap-1">
+                  <Image className="size-3.5" />
+                  {incident.adjuntos_count}
+                </span>
+              ) : null}
             </div>
           </div>
         </CardContent>
