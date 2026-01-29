@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, FileText, AlertTriangle, Car, Package } from "lucide-react";
+import { BarChart3, FileText, AlertTriangle, Car, Package, Users } from "lucide-react";
 import FeatureCard from "@/components/feature-card";
 
 const features = [
@@ -33,6 +33,12 @@ const features = [
     description: "¿No estarás en casa? Pide a un vecino que recoja tu paquete.",
     icon: Package,
     route: "/paquetes",
+  },
+  {
+    title: "Votaciones",
+    description: "Participa en votaciones y sondeos para decidir entre todos las próximas ideas.",
+    icon: Users,
+    route: "/votaciones",
   },
 ];
 
