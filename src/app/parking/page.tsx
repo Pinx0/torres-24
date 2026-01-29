@@ -116,6 +116,7 @@ export default async function ParkingPage() {
             <ParkingRequestsList
               requests={requestsResult.data}
               currentFamilyCode={familyCode ?? ""}
+              garajes={garajes}
             />
           )}
         </TabsContent>

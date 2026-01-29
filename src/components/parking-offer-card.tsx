@@ -71,7 +71,7 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success("Oferta retirada");
+        toast.success(offer.estado === "ocupada" ? "Oferta cancelada" : "Oferta retirada");
         router.refresh();
       }
       setIsCancelling(false);
@@ -102,9 +102,16 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
               </div>
             </div>
             {isMyOffer ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                Tu oferta
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                  Tu oferta
+                </span>
+                {offer.estado === "ocupada" ? (
+                  <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-600 dark:text-blue-500">
+                    Ocupada
+                  </span>
+                ) : null}
+              </div>
             ) : null}
           </div>
         </CardHeader>
@@ -178,7 +185,7 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
               </Dialog>
             )}
 
-            {isMyOffer && offer.estado === "activa" ? (
+            {isMyOffer && (offer.estado === "activa" || offer.estado === "ocupada") ? (
               <Button
                 variant="destructive"
                 className="w-full gap-2"
@@ -186,7 +193,13 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
                 disabled={isPending || isCancelling}
               >
                 <X className="size-4" />
-                {isPending || isCancelling ? "Retirando..." : "Retirar oferta"}
+                {isPending || isCancelling
+                  ? offer.estado === "ocupada"
+                    ? "Cancelando..."
+                    : "Retirando..."
+                  : offer.estado === "ocupada"
+                    ? "Cancelar oferta"
+                    : "Retirar oferta"}
               </Button>
             ) : null}
           </div>

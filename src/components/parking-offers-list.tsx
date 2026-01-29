@@ -9,9 +9,15 @@ interface ParkingOffersListProps {
 }
 
 export function ParkingOffersList({ offers, currentFamilyCode }: ParkingOffersListProps) {
+  const now = new Date();
+  const activeOffers = offers.filter((offer) => {
+    const end = new Date(offer.fecha_fin);
+    return Number.isNaN(end.getTime()) || end >= now;
+  });
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {offers.map((offer) => (
+      {activeOffers.map((offer) => (
         <ParkingOfferCard
           key={offer.id}
           offer={offer}
