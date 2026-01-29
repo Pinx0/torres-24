@@ -80,9 +80,12 @@ async function checkRateLimit(
   return { allowed: true };
 }
 
-async function validatePhone(
-  phone: string,
-): Promise<{ valid: boolean; message?: string; apartamento?: string }> {
+async function validatePhone(phone: string): Promise<{
+  valid: boolean;
+  message?: string;
+  apartamento?: string;
+  nombre?: string;
+}> {
   const adminClient = createAdminClient();
 
   // Normalize phone number (remove spaces, ensure + prefix)
@@ -110,7 +113,11 @@ async function validatePhone(
     };
   }
 
-  return { valid: true, apartamento: data.apartamento || undefined };
+  return {
+    valid: true,
+    apartamento: data.apartamento || undefined,
+    nombre: data.nombre || undefined,
+  };
 }
 
 export async function signUpWithPhone(formData: FormData) {
@@ -148,6 +155,7 @@ export async function signUpWithPhone(formData: FormData) {
   }
 
   const apartamento = phoneValidation.apartamento;
+  const nombreTelefono = phoneValidation.nombre;
   if (!apartamento) {
     return {
       error:
@@ -208,6 +216,7 @@ export async function signUpWithPhone(formData: FormData) {
       email_confirm: false, // User will confirm via OTP
       user_metadata: {
         phone: phone,
+        name: nombreTelefono,
       },
     });
 
