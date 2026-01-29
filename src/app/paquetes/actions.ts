@@ -32,7 +32,7 @@ async function getUserDisplayName(
   adminClient: ReturnType<typeof createAdminClient>,
   userId: string,
   unidadCodigo: string,
-  cache: Map<string, string>
+  cache: Map<string, string>,
 ): Promise<string> {
   if (cache.has(userId)) {
     return cache.get(userId)!;
@@ -41,26 +41,20 @@ async function getUserDisplayName(
   let nombre = "Vecino";
 
   try {
-    const { data: userData, error: userError } = await adminClient.auth.admin.getUserById(userId);
+    const { data: userData, error: userError } =
+      await adminClient.auth.admin.getUserById(userId);
 
     if (userError || !userData?.user) {
       console.error("Error al obtener usuario:", userError);
     } else {
       const user = userData.user;
-      const telefono = (user.user_metadata as { phone?: string } | undefined)?.phone || user.phone;
+      const metadata = user.user_metadata as
+        | { name?: string; nombre?: string }
+        | undefined;
+      const nombreMetadata = metadata?.name || metadata?.nombre;
 
-      if (telefono) {
-        const { data: telefonoData, error: telefonoError } = await adminClient
-          .from("telefonos_validos")
-          .select("nombre")
-          .eq("telefono", telefono)
-          .single();
-
-        if (!telefonoError && telefonoData?.nombre) {
-          nombre = telefonoData.nombre;
-        } else if (telefonoError && telefonoError.code !== "PGRST116") {
-          console.error("Error al obtener nombre:", telefonoError);
-        }
+      if (nombreMetadata) {
+        nombre = nombreMetadata;
       }
     }
   } catch (error) {
@@ -82,10 +76,17 @@ async function getCurrentUserContext(): Promise<{
 }> {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return { userId: null, familyCode: null, error: "Usuario no autenticado" };
+      return {
+        userId: null,
+        familyCode: null,
+        error: "Usuario no autenticado",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -96,10 +97,18 @@ async function getCurrentUserContext(): Promise<{
       .single();
 
     if (unidadError || !userUnidad) {
-      return { userId: null, familyCode: null, error: "No se encontró unidad familiar asociada" };
+      return {
+        userId: null,
+        familyCode: null,
+        error: "No se encontró unidad familiar asociada",
+      };
     }
 
-    return { userId: user.id, familyCode: userUnidad.unidad_familiar_codigo, error: null };
+    return {
+      userId: user.id,
+      familyCode: userUnidad.unidad_familiar_codigo,
+      error: null,
+    };
   } catch (error) {
     console.error("Error en getCurrentUserContext:", error);
     return {
@@ -114,7 +123,7 @@ async function getCurrentUserContext(): Promise<{
  * Create a new package pickup request
  */
 export async function createPackageRequest(
-  descripcion: string
+  descripcion: string,
 ): Promise<{ data: PackageRequest | null; error: string | null }> {
   try {
     if (!descripcion || descripcion.trim().length === 0) {
@@ -123,7 +132,10 @@ export async function createPackageRequest(
 
     const { userId, familyCode, error } = await getCurrentUserContext();
     if (error || !userId || !familyCode) {
-      return { data: null, error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: null,
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -166,7 +178,10 @@ export async function getPendingRequests(): Promise<{
   try {
     const { familyCode, error } = await getCurrentUserContext();
     if (error || !familyCode) {
-      return { data: [], error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: [],
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -197,7 +212,7 @@ export async function getPendingRequests(): Promise<{
               adminClient,
               req.solicitante_usuario_id,
               req.solicitante_unidad_familiar_codigo,
-              displayCache
+              displayCache,
             )
           : req.solicitante_unidad_familiar_codigo,
         aceptante_display:
@@ -206,10 +221,10 @@ export async function getPendingRequests(): Promise<{
                 adminClient,
                 req.aceptante_usuario_id,
                 req.aceptante_unidad_familiar_codigo,
-                displayCache
+                displayCache,
               )
             : req.aceptante_unidad_familiar_codigo,
-      }))
+      })),
     );
 
     return { data: requestsWithDetails, error: null };
@@ -232,7 +247,10 @@ export async function getMyRequests(): Promise<{
   try {
     const { familyCode, error } = await getCurrentUserContext();
     if (error || !familyCode) {
-      return { data: [], error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: [],
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -240,7 +258,7 @@ export async function getMyRequests(): Promise<{
       .from("solicitudes_paquetes")
       .select("*")
       .or(
-        `solicitante_unidad_familiar_codigo.eq.${familyCode},aceptante_unidad_familiar_codigo.eq.${familyCode}`
+        `solicitante_unidad_familiar_codigo.eq.${familyCode},aceptante_unidad_familiar_codigo.eq.${familyCode}`,
       )
       .in("estado", ["pendiente", "aceptada"])
       .order("created_at", { ascending: false });
@@ -265,7 +283,7 @@ export async function getMyRequests(): Promise<{
               adminClient,
               req.solicitante_usuario_id,
               req.solicitante_unidad_familiar_codigo,
-              displayCache
+              displayCache,
             )
           : req.solicitante_unidad_familiar_codigo,
         aceptante_display:
@@ -274,10 +292,10 @@ export async function getMyRequests(): Promise<{
                 adminClient,
                 req.aceptante_usuario_id,
                 req.aceptante_unidad_familiar_codigo,
-                displayCache
+                displayCache,
               )
             : req.aceptante_unidad_familiar_codigo,
-      }))
+      })),
     );
 
     return { data: requestsWithDetails, error: null };
@@ -301,7 +319,10 @@ export async function getAcceptedRequests(): Promise<{
   try {
     const { familyCode, error } = await getCurrentUserContext();
     if (error || !familyCode) {
-      return { data: [], error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: [],
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -310,7 +331,7 @@ export async function getAcceptedRequests(): Promise<{
       .select("*")
       .eq("estado", "aceptada")
       .or(
-        `solicitante_unidad_familiar_codigo.eq.${familyCode},aceptante_unidad_familiar_codigo.eq.${familyCode}`
+        `solicitante_unidad_familiar_codigo.eq.${familyCode},aceptante_unidad_familiar_codigo.eq.${familyCode}`,
       )
       .gt("fecha_expiracion", new Date().toISOString())
       .order("fecha_aceptacion", { ascending: false });
@@ -335,7 +356,7 @@ export async function getAcceptedRequests(): Promise<{
               adminClient,
               req.solicitante_usuario_id,
               req.solicitante_unidad_familiar_codigo,
-              displayCache
+              displayCache,
             )
           : req.solicitante_unidad_familiar_codigo,
         aceptante_display:
@@ -344,10 +365,10 @@ export async function getAcceptedRequests(): Promise<{
                 adminClient,
                 req.aceptante_usuario_id,
                 req.aceptante_unidad_familiar_codigo,
-                displayCache
+                displayCache,
               )
             : req.aceptante_unidad_familiar_codigo,
-      }))
+      })),
     );
 
     return { data: requestsWithDetails, error: null };
@@ -364,12 +385,15 @@ export async function getAcceptedRequests(): Promise<{
  * Accept a pending request
  */
 export async function acceptRequest(
-  requestId: string
+  requestId: string,
 ): Promise<{ data: PackageRequest | null; error: string | null }> {
   try {
     const { userId, familyCode, error } = await getCurrentUserContext();
     if (error || !userId || !familyCode) {
-      return { data: null, error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: null,
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -402,7 +426,9 @@ export async function acceptRequest(
         aceptante_usuario_id: userId,
         aceptante_unidad_familiar_codigo: familyCode,
         fecha_aceptacion: fechaAceptacion,
-        fecha_expiracion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month from now
+        fecha_expiracion: new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000,
+        ).toISOString(), // 1 month from now
       })
       .eq("id", requestId)
       .select()
@@ -430,12 +456,15 @@ export async function acceptRequest(
  * Cancel a pending request (only solicitante)
  */
 export async function cancelRequest(
-  requestId: string
+  requestId: string,
 ): Promise<{ data: PackageRequest | null; error: string | null }> {
   try {
     const { userId, familyCode, error } = await getCurrentUserContext();
     if (error || !userId || !familyCode) {
-      return { data: null, error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: null,
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -450,7 +479,10 @@ export async function cancelRequest(
     }
 
     if (existingRequest.estado !== "pendiente") {
-      return { data: null, error: "Solo puedes cancelar solicitudes pendientes" };
+      return {
+        data: null,
+        error: "Solo puedes cancelar solicitudes pendientes",
+      };
     }
 
     if (existingRequest.solicitante_unidad_familiar_codigo !== familyCode) {
@@ -486,12 +518,15 @@ export async function cancelRequest(
  * Mark an accepted request as completed (only solicitante)
  */
 export async function completeRequest(
-  requestId: string
+  requestId: string,
 ): Promise<{ data: PackageRequest | null; error: string | null }> {
   try {
     const { userId, familyCode, error } = await getCurrentUserContext();
     if (error || !userId || !familyCode) {
-      return { data: null, error: error || "No se pudo obtener la unidad familiar" };
+      return {
+        data: null,
+        error: error || "No se pudo obtener la unidad familiar",
+      };
     }
 
     const adminClient = createAdminClient();
@@ -506,7 +541,10 @@ export async function completeRequest(
     }
 
     if (existingRequest.estado !== "aceptada") {
-      return { data: null, error: "Solo puedes completar solicitudes aceptadas" };
+      return {
+        data: null,
+        error: "Solo puedes completar solicitudes aceptadas",
+      };
     }
 
     if (existingRequest.solicitante_unidad_familiar_codigo !== familyCode) {

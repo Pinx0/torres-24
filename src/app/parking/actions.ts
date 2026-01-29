@@ -58,22 +58,13 @@ async function getUserDisplayName(
       console.error("Error al obtener usuario:", userError);
     } else {
       const user = userData.user;
-      const telefono =
-        (user.user_metadata as { phone?: string } | undefined)?.phone ||
-        user.phone;
+      const metadata = user.user_metadata as
+        | { name?: string; nombre?: string }
+        | undefined;
+      const nombreMetadata = metadata?.name || metadata?.nombre;
 
-      if (telefono) {
-        const { data: telefonoData, error: telefonoError } = await adminClient
-          .from("telefonos_validos")
-          .select("nombre")
-          .eq("telefono", telefono)
-          .single();
-
-        if (!telefonoError && telefonoData?.nombre) {
-          nombre = telefonoData.nombre;
-        } else if (telefonoError && telefonoError.code !== "PGRST116") {
-          console.error("Error al obtener nombre:", telefonoError);
-        }
+      if (nombreMetadata) {
+        nombre = nombreMetadata;
       }
     }
   } catch (error) {
