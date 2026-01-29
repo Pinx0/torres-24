@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 // Email de desarrollo para saltarse el OTP en local
 const DEV_EMAIL = process.env.DEV_EMAIL || "dev@local.com";
+const SECONDARY_DEV_EMAIL = process.env.SECONDARY_DEV_EMAIL || "dev2@local.com";
 const IS_DEV = process.env.NODE_ENV === "development";
 
 /**
@@ -14,29 +15,35 @@ const IS_DEV = process.env.NODE_ENV === "development";
  */
 async function createDevSession(email: string) {
   const adminClient = createAdminClient();
-  
+
   // Buscar el usuario
   const { data: usersData } = await adminClient.auth.admin.listUsers({
     page: 1,
     perPage: 1000,
   });
-  
+
   const user = usersData?.users?.find(
-    (u) => u.email?.toLowerCase() === email.toLowerCase()
+    (u) => u.email?.toLowerCase() === email.toLowerCase(),
   );
-  
+
   if (!user) {
-    return { error: "Usuario de desarrollo no encontrado. Asegúrate de crear una cuenta con este email primero." };
+    return {
+      error:
+        "Usuario de desarrollo no encontrado. Asegúrate de crear una cuenta con este email primero.",
+    };
   }
 
   // Generar un magic link usando el admin client
-  const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
-    type: "magiclink",
-    email: email,
-  });
+  const { data: linkData, error: linkError } =
+    await adminClient.auth.admin.generateLink({
+      type: "magiclink",
+      email: email,
+    });
 
   if (linkError || !linkData?.properties?.hashed_token) {
-    return { error: linkError?.message || "Error al generar link de desarrollo" };
+    return {
+      error: linkError?.message || "Error al generar link de desarrollo",
+    };
   }
 
   // Usar el hashed_token para crear la sesión directamente
@@ -55,7 +62,7 @@ async function createDevSession(email: string) {
 
 export async function signInWithEmail(formData: FormData) {
   const email = formData.get("email") as string;
-  
+
   if (!email) {
     return { error: "El correo electrónico es requerido" };
   }
@@ -66,18 +73,26 @@ export async function signInWithEmail(formData: FormData) {
     page: 1,
     perPage: 1000,
   });
-  
+
   const existingUser = usersData?.users?.find(
-    (user) => user.email?.toLowerCase() === email.toLowerCase()
+    (user) => user.email?.toLowerCase() === email.toLowerCase(),
   );
-  
+
   if (!existingUser) {
-    const errorMessage = encodeURIComponent("No existe una cuenta con este correo electrónico. Por favor, regístrate primero.");
-    redirect(`/signup?email=${encodeURIComponent(email)}&error=${errorMessage}`);
+    const errorMessage = encodeURIComponent(
+      "No existe una cuenta con este correo electrónico. Por favor, regístrate primero.",
+    );
+    redirect(
+      `/signup?email=${encodeURIComponent(email)}&error=${errorMessage}`,
+    );
   }
 
   // Bypass OTP en desarrollo local para el email de desarrollo
-  if (IS_DEV && email.toLowerCase() === DEV_EMAIL.toLowerCase()) {
+  if (
+    IS_DEV &&
+    (email.toLowerCase() === DEV_EMAIL.toLowerCase() ||
+      email.toLowerCase() === SECONDARY_DEV_EMAIL.toLowerCase())
+  ) {
     const result = await createDevSession(email);
     if (result.error) {
       return { error: result.error };
@@ -102,7 +117,7 @@ export async function signInWithEmail(formData: FormData) {
 export async function verifyOtp(formData: FormData) {
   const email = formData.get("email") as string;
   const token = formData.get("token") as string;
-  
+
   // Bypass OTP en desarrollo local para el email de desarrollo
   if (IS_DEV && email.toLowerCase() === DEV_EMAIL.toLowerCase()) {
     const result = await createDevSession(email);
