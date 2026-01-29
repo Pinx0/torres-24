@@ -52,6 +52,7 @@ export default async function MisDatosPage() {
     ...possessions.garajes.map((garaje) => garaje.porcentaje_participacion),
     ...possessions.trasteros.map((trastero) => trastero.porcentaje_participacion),
   ].reduce((acc, value) => acc + value, 0);
+  const userName = user.user_metadata?.name || user.user_metadata?.full_name || "-";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -67,13 +68,25 @@ export default async function MisDatosPage() {
         </div>
       </div>
 
-      <div className="mb-4 border-b border-border/60 bg-transparent px-4 pb-4 text-right">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Total cuota de participacion
-        </p>
-        <p className="mt-2 text-2xl font-semibold text-foreground">
-          {totalParticipacion.toFixed(2)}%
-        </p>
+      <div className="mb-4 border-b border-border/60 bg-transparent px-4 pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Usuario
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">
+              {userName}
+            </p>
+          </div>
+          <div className="text-left sm:text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Total cuota de participacion
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-foreground">
+              {totalParticipacion.toFixed(2)}%
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2">
