@@ -1,9 +1,64 @@
-export default function Home() {
+"use client";
+
+import { BarChart3, FileText, AlertTriangle, Car, Package, Users } from "lucide-react";
+import FeatureCard from "@/components/feature-card";
+
+const features = [
+  {
+    title: "Visor de gastos",
+    description: "Consulta las gráficas de gastos de la comunidad y conoce cuánto corresponde a cada vecino según su coeficiente.",
+    icon: BarChart3,
+    route: "/gastos",
+  },
+  {
+    title: "Documentación",
+    description: "Accede a las actas de juntas, el libro del edificio y toda la documentación oficial de la comunidad.",
+    icon: FileText,
+    route: "/documentacion",
+  },
+  {
+    title: "Gestión de incidencias",
+    description: "Reporta problemas con fotos, sigue el estado de resolución y mantén informados a todos los vecinos.",
+    icon: AlertTriangle,
+    route: "/incidencias",
+  },
+  {
+    title: "ParkShare™",
+    description: "Solicita una plaza temporalmente para amigos o familiares y comparte la tuya cuando te vayas fuera.",
+    icon: Car,
+    route: "/parking",
+  },
+  {
+    title: "Recogida de paquetes",
+    description: "¿No estarás en casa? Pide a un vecino que recoja tu paquete.",
+    icon: Package,
+    route: "/paquetes",
+  },
+  {
+    title: "Votaciones",
+    description: "Participa en votaciones y sondeos para decidir entre todos las próximas ideas.",
+    icon: Users,
+    route: "/votaciones",
+  },
+];
+
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <h1>Hello World</h1>
-      </main>
+    <div className="bg-background">
+      {/* Features Grid */}
+      <div className="max-w-6xl mx-auto px-4 py-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={feature.title}
+              {...feature}
+              delay={0.2 + index * 0.1}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Index;
