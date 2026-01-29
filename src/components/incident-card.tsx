@@ -34,7 +34,11 @@ export function IncidentCard({ incident }: IncidentCardProps) {
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-base mb-1 truncate">{incident.titulo}</CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Autor: {incident.autor_unidad_familiar_codigo}
+                  Reportada por:{" "}
+                  {incident.autor_display &&
+                    incident.autor_display !== incident.autor_unidad_familiar_codigo
+                    ? `${incident.autor_display} · ${incident.autor_unidad_familiar_codigo}`
+                    : incident.autor_unidad_familiar_codigo}
                 </p>
               </div>
             </div>
