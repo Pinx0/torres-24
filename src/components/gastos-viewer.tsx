@@ -38,6 +38,38 @@ function getMonto(gasto: GastoCalculado, scope: Scope, period: Period) {
   return period === "mensual" ? gasto.mensual_comunidad : gasto.anual_comunidad;
 }
 
+function pickLatestRecurring(gastos: GastoCalculado[]) {
+  const recurring = new Map<string, GastoCalculado>();
+  const punctual: GastoCalculado[] = [];
+
+  for (const gasto of gastos) {
+    if (gasto.periodicidad === "puntual") {
+      punctual.push(gasto);
+      continue;
+    }
+
+    const key = [
+      gasto.categoria_id,
+      gasto.descripcion,
+      gasto.tipo,
+      gasto.periodicidad,
+    ].join("::");
+    const existing = recurring.get(key);
+    if (!existing) {
+      recurring.set(key, gasto);
+      continue;
+    }
+
+    const existingDate = new Date(existing.fecha_inicio).getTime();
+    const nextDate = new Date(gasto.fecha_inicio).getTime();
+    if (!Number.isFinite(existingDate) || nextDate > existingDate) {
+      recurring.set(key, gasto);
+    }
+  }
+
+  return [...punctual, ...recurring.values()];
+}
+
 export function GastosViewer({
   gastos,
   participacion,
@@ -53,6 +85,10 @@ export function GastosViewer({
     return gastos.filter((gasto) => (tipo === "ambos" ? true : gasto.tipo === tipo));
   }, [gastos, tipo]);
 
+  const summaryGastos = useMemo(() => {
+    return pickLatestRecurring(filteredGastos);
+  }, [filteredGastos]);
+
   const chartData = useMemo(() => {
     const entries = new Map<
       string,
@@ -60,7 +96,7 @@ export function GastosViewer({
     >();
 
     let colorIndex = 0;
-    for (const gasto of filteredGastos) {
+    for (const gasto of summaryGastos) {
       const value = getMonto(gasto, scope, period);
       if (!value) continue;
       const id = gasto.categoria?.id ?? "sin-categoria";
@@ -78,11 +114,11 @@ export function GastosViewer({
     }
 
     return Array.from(entries.values()).sort((a, b) => b.value - a.value);
-  }, [filteredGastos, period, scope]);
+  }, [summaryGastos, period, scope]);
 
   const total = useMemo(() => {
-    return filteredGastos.reduce((acc, gasto) => acc + getMonto(gasto, scope, period), 0);
-  }, [filteredGastos, scope, period]);
+    return summaryGastos.reduce((acc, gasto) => acc + getMonto(gasto, scope, period), 0);
+  }, [summaryGastos, scope, period]);
 
   return (
     <div className="space-y-6">
