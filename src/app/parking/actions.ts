@@ -791,6 +791,101 @@ export async function offerParkingForRequest(
       };
     }
 
+    try {
+      const { data: familyUsers, error: familyUsersError } = await adminClient
+        .from("usuarios_unidades_familiares")
+        .select("usuario_id")
+        .eq(
+          "unidad_familiar_codigo",
+          request.solicitante_unidad_familiar_codigo,
+        );
+
+      if (familyUsersError) {
+        console.error(
+          "Error al obtener usuarios de la unidad solicitante:",
+          familyUsersError,
+        );
+      } else {
+        const userIds = Array.from(
+          new Set(
+            (familyUsers ?? [])
+              .map((user) => user.usuario_id)
+              .filter((userId): userId is string => Boolean(userId)),
+          ),
+        );
+
+        const emailResults = await Promise.all(
+          userIds.map(async (targetUserId) => {
+            const { data: userData, error: userError } =
+              await adminClient.auth.admin.getUserById(targetUserId);
+
+            if (userError) {
+              console.error(
+                "Error al obtener email del usuario solicitante:",
+                userError,
+              );
+              return null;
+            }
+
+            return userData?.user?.email ?? null;
+          }),
+        );
+
+        const recipientEmails = Array.from(
+          new Set(
+            emailResults.filter((email): email is string => Boolean(email)),
+          ),
+        );
+
+        if (recipientEmails.length > 0) {
+          const cache = new Map<string, string>();
+          const concedenteNombre = await getUserDisplayName(
+            adminClient,
+            userId,
+            familyCode,
+            cache,
+          );
+
+          const emailPayload = buildEmailForEvent({
+            event: "parking_request_accepted",
+            data: {
+              solicitudId: updatedRequest.id,
+              plantaSolicitada: updatedRequest.planta_solicitada,
+              fechaInicio: updatedRequest.fecha_inicio,
+              fechaFin: updatedRequest.fecha_fin,
+              concedenteNombre,
+              concedenteUnidad: familyCode,
+              plazaCodigo: garaje.codigo,
+            },
+          });
+
+          if (!emailPayload) {
+            console.warn(
+              "Template de email no configurado para parking_request_accepted",
+            );
+          } else {
+            const emailResult = await sendTransactionalEmail({
+              to: recipientEmails.map((email) => ({ email })),
+              templateId: emailPayload.templateId,
+              params: emailPayload.params,
+            });
+
+            if (!emailResult.success && !emailResult.skipped) {
+              console.error(
+                "Error al enviar notificación por email:",
+                emailResult.error,
+              );
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error preparando notificación de aceptación de parking:",
+        error,
+      );
+    }
+
     return { data: updatedRequest as ParkingRequest, error: null };
   } catch (error) {
     console.error("Error en offerParkingForRequest:", error);
