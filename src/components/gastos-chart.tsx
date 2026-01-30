@@ -62,7 +62,7 @@ export function GastosChart({ data }: { data: GastosChartItem[] }) {
             <Cell key={entry.id} fill={entry.color} />
           ))}
         </Pie>
-        <ChartLegend content={<ChartLegendContent nameKey="label" />} />
+        <ChartLegend content={<ChartLegendContent nameKey="id" />} />
       </PieChart>
     </ChartContainer>
   );
