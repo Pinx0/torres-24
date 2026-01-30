@@ -2,6 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTransactionalEmail } from "@/lib/notifications/brevo";
+import { buildEmailForEvent } from "@/lib/notifications/email-events";
+import { getNeighborEmailsByStairway } from "@/lib/notifications/parking-recipients";
 
 export interface PackageRequest {
   id: string;
@@ -156,6 +159,68 @@ export async function createPackageRequest(
         data: null,
         error: insertError?.message || "Error al crear la solicitud",
       };
+    }
+
+    try {
+      const { data: vivienda, error: viviendaError } = await adminClient
+        .from("viviendas")
+        .select("escalera")
+        .eq("unidad_familiar_codigo", familyCode)
+        .single();
+
+      if (viviendaError || !vivienda?.escalera) {
+        console.warn(
+          "No se pudo determinar la escalera del solicitante para email:",
+          viviendaError,
+        );
+      } else {
+        const recipientEmails = await getNeighborEmailsByStairway(
+          adminClient,
+          vivienda.escalera,
+          familyCode,
+        );
+
+        if (recipientEmails.length > 0) {
+          const cache = new Map<string, string>();
+          const solicitanteNombre = userId
+            ? await getUserDisplayName(adminClient, userId, familyCode, cache)
+            : `Unidad ${familyCode}`;
+          const fechaSolicitud = request.created_at ?? new Date().toISOString();
+
+          const emailPayload = buildEmailForEvent({
+            event: "package_request_same_stairway",
+            data: {
+              solicitudId: request.id,
+              descripcion: request.descripcion,
+              solicitanteNombre,
+              solicitanteUnidad: familyCode,
+              escalera: vivienda.escalera,
+              fechaSolicitud,
+            },
+          });
+
+          if (!emailPayload) {
+            console.warn(
+              "Template de email no configurado para package_request_same_stairway",
+            );
+          } else {
+            const emailResult = await sendTransactionalEmail({
+              to: recipientEmails.map((email) => ({ email })),
+              templateId: emailPayload.templateId,
+              params: emailPayload.params,
+            });
+
+            if (!emailResult.success && !emailResult.skipped) {
+              console.error(
+                "Error al enviar notificación por email:",
+                emailResult.error,
+              );
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error preparando notificación de paquete:", error);
     }
 
     return { data: request as PackageRequest, error: null };
@@ -440,6 +505,79 @@ export async function acceptRequest(
         data: null,
         error: updateError?.message || "Error al aceptar la solicitud",
       };
+    }
+
+    try {
+      if (!existingRequest.solicitante_usuario_id) {
+        console.warn(
+          "Solicitud sin solicitante_usuario_id para notificación de email.",
+        );
+      } else {
+        const { data: solicitanteUser, error: solicitanteError } =
+          await adminClient.auth.admin.getUserById(
+            existingRequest.solicitante_usuario_id,
+          );
+        const solicitanteEmail = solicitanteUser?.user?.email;
+
+        if (solicitanteError || !solicitanteEmail) {
+          console.warn(
+            "No se pudo obtener el email del solicitante:",
+            solicitanteError,
+          );
+        } else {
+          const cache = new Map<string, string>();
+          const solicitanteNombre = await getUserDisplayName(
+            adminClient,
+            existingRequest.solicitante_usuario_id,
+            existingRequest.solicitante_unidad_familiar_codigo,
+            cache,
+          );
+          const aceptanteNombre = await getUserDisplayName(
+            adminClient,
+            userId,
+            familyCode,
+            cache,
+          );
+          const fechaAceptacion =
+            updatedRequest.fecha_aceptacion ?? new Date().toISOString();
+
+          const emailPayload = buildEmailForEvent({
+            event: "package_request_accepted",
+            data: {
+              solicitudId: updatedRequest.id,
+              descripcion: existingRequest.descripcion,
+              solicitanteNombre,
+              aceptanteNombre,
+              aceptanteUnidad: familyCode,
+              fechaAceptacion,
+            },
+          });
+
+          if (!emailPayload) {
+            console.warn(
+              "Template de email no configurado para package_request_accepted",
+            );
+          } else {
+            const emailResult = await sendTransactionalEmail({
+              to: [{ email: solicitanteEmail }],
+              templateId: emailPayload.templateId,
+              params: emailPayload.params,
+            });
+
+            if (!emailResult.success && !emailResult.skipped) {
+              console.error(
+                "Error al enviar notificación por email:",
+                emailResult.error,
+              );
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error preparando notificación de aceptación de paquete:",
+        error,
+      );
     }
 
     return { data: updatedRequest as PackageRequest, error: null };
