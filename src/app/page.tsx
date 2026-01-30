@@ -5,18 +5,6 @@ import FeatureCard from "@/components/feature-card";
 
 const features = [
   {
-    title: "Visor de gastos",
-    description: "Consulta las gráficas de gastos de la comunidad y conoce cuánto corresponde a cada vecino según su coeficiente.",
-    icon: BarChart3,
-    route: "/gastos",
-  },
-  {
-    title: "Documentación",
-    description: "Accede a las actas de juntas, el libro del edificio y toda la documentación oficial de la comunidad.",
-    icon: FileText,
-    route: "/documentacion",
-  },
-  {
     title: "Gestión de incidencias",
     description: "Reporta problemas con fotos, sigue el estado de resolución y mantén informados a todos los vecinos.",
     icon: AlertTriangle,
@@ -35,10 +23,22 @@ const features = [
     route: "/paquetes",
   },
   {
+    title: "Documentación",
+    description: "Accede a las actas de juntas, el libro del edificio y toda la documentación oficial de la comunidad.",
+    icon: FileText,
+    route: "/documentacion",
+  },
+  {
     title: "Votaciones",
     description: "Participa en votaciones y sondeos para decidir entre todos las próximas ideas.",
     icon: Users,
     route: "/votaciones",
+  },
+  {
+    title: "Visor de gastos",
+    description: "Consulta las gráficas de gastos de la comunidad y conoce cuánto corresponde a cada vecino según su coeficiente.",
+    icon: BarChart3,
+    route: "/gastos",
   },
 ];
 
