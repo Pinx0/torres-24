@@ -14,6 +14,14 @@ Aplicacion web para la gestion vecinal de un edificio. Centraliza documentacion,
 - Votaciones (futuro): espacio para consultas y votaciones de vecinos.
 - Avisos por email: notificaciones a los vecinos (se usa Brevo para el envio).
 
+Las votaciones tienen un boton **Compartir en WhatsApp**, disponible en el detalle
+y justo despues de crearlas. Prepara un mensaje con el titulo y el enlace de
+`https://torres24.org`; el vecino elige el chat o grupo y confirma el envio en
+WhatsApp. Si la votacion esta finalizada, el mensaje invita a consultar los
+resultados. Si el destinatario necesita iniciar sesion, vuelve a la votacion
+despues de verificar su codigo. `yarn test:polls` comprueba que este retorno solo
+acepta rutas locales de detalle de votaciones.
+
 ## Tecnologias
 
 - Next.js (App Router) y React

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+import { getPollLoginRedirect } from "@/lib/poll-login-redirect";
 
 // Email de desarrollo para saltarse el OTP en local
 const DEV_EMAIL = process.env.DEV_EMAIL || "dev@local.com";
@@ -98,7 +99,7 @@ export async function signInWithEmail(formData: FormData) {
       return { error: result.error };
     }
     // Redirigir directamente sin necesidad de OTP
-    redirect("/");
+    redirect(getPollLoginRedirect(formData.get("next")));
   }
 
   const supabase = await createClient();
@@ -124,7 +125,7 @@ export async function verifyOtp(formData: FormData) {
     if (result.error) {
       return { error: result.error };
     }
-    redirect("/");
+    redirect(getPollLoginRedirect(formData.get("next")));
   }
 
   const supabase = await createClient();
@@ -140,7 +141,7 @@ export async function verifyOtp(formData: FormData) {
   }
 
   if (data.session) {
-    redirect("/");
+    redirect(getPollLoginRedirect(formData.get("next")));
   }
 
   return { error: "No se pudo crear la sesión" };

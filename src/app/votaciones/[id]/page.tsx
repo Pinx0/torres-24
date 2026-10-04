@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BadgeCheck, Vote } from "lucide-react";
 import { getPollDetail } from "../actions";
 import { PollDetailActions } from "@/components/poll-detail-actions";
+import { SharePollWhatsAppButton } from "@/components/share-poll-whatsapp-button";
 
 interface PollDetailPageProps {
   params: Promise<{ id: string }>;
@@ -18,7 +19,7 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect(`/login?next=${encodeURIComponent(`/votaciones/${id}`)}`);
   }
 
   const pollResult = await getPollDetail(id);
@@ -76,6 +77,11 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
             ) : null}
           </div>
         </div>
+        <SharePollWhatsAppButton
+          pollId={encuesta.id}
+          title={encuesta.titulo}
+          isFinalized={isFinalized}
+        />
       </div>
 
       <Card className="border-border/60">

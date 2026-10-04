@@ -71,6 +71,7 @@ function LoginForm() {
 
         const formData = new FormData();
         formData.append("email", email);
+        formData.append("next", searchParams.get("next") || "");
 
         const result = await signInWithEmail(formData);
 
@@ -95,6 +96,7 @@ function LoginForm() {
         const formData = new FormData();
         formData.append("email", email);
         formData.append("token", otp);
+        formData.append("next", searchParams.get("next") || "");
 
         const result = await verifyOtp(formData);
 
