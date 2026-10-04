@@ -7,6 +7,7 @@ import {
   createDocumentUploadUrl,
 } from "@/lib/supabase/storage";
 import { DOCUMENT_TYPE_SET, type DocumentType } from "@/lib/document-types";
+import { notifyCommunityPublication } from "@/lib/notifications/community-publication";
 
 export interface Documento {
   id: string;
@@ -186,6 +187,16 @@ export async function createDocumento(params: {
       console.error("Error al crear documento:", error);
       return { data: null, error: error.message || "Error al crear documento" };
     }
+
+    await notifyCommunityPublication({
+      event: "document_created",
+      id: data.id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      tipo: data.tipo,
+      authorUserId: user.id,
+      createdAt: data.created_at,
+    });
 
     return { data: data as Documento, error: null };
   } catch (error) {

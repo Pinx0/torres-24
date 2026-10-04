@@ -788,6 +788,8 @@ export async function offerParkingForRequest(
       .from("solicitudes_parking")
       .update({ estado: "aceptada", oferta_id: offer.id })
       .eq("id", request.id)
+      .eq("estado", "pendiente")
+      .gte("fecha_fin", new Date().toISOString())
       .select()
       .single();
 

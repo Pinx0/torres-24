@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyCommunityPublication } from "@/lib/notifications/community-publication";
 import {
   buildPollOptionAssetPath,
   createPollOptionDownloadUrl,
@@ -434,6 +435,16 @@ export async function createPoll(params: {
         error: opcionesError.message || "Error al crear opciones",
       };
     }
+
+    await notifyCommunityPublication({
+      event: "poll_created",
+      id: encuesta.id,
+      titulo: encuesta.titulo,
+      descripcion: encuesta.descripcion,
+      authorUserId: userId,
+      authorFamilyCode: familyCode,
+      createdAt: encuesta.created_at,
+    });
 
     return { data: encuesta as Encuesta, error: null };
   } catch (error) {

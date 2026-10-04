@@ -11,6 +11,7 @@
     "format:check": "prettier --check .",
     "types:check": "tsc --noEmit",
     "test:parking": "node --experimental-strip-types --test tests/parking-date-time.test.mjs",
+    "test:notifications": "node --test tests/community-notifications.test.mjs",
     "supabase": "npx supabase",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
