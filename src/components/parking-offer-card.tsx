@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { CarFront, Check, X } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
+import {
+  formatParkingDateTime,
+  parkingDateTimeForInput,
+} from "@/lib/parking-date-time";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ParkingOffer, acceptParkingOffer, cancelParkingOffer } from "@/app/parking/actions";
+import {
+  ParkingOffer,
+  acceptParkingOffer,
+  cancelParkingOffer,
+} from "@/app/parking/actions";
 import {
   Dialog,
   DialogContent,
@@ -33,15 +39,6 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
   const [fechaFin, setFechaFin] = useState("");
   const [isPending, startTransition] = useTransition();
   const [isCancelling, setIsCancelling] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      const start = new Date(offer.fecha_inicio);
-      const end = new Date(offer.fecha_fin);
-      setFechaInicio(format(start, "yyyy-MM-dd'T'HH:mm"));
-      setFechaFin(format(end, "yyyy-MM-dd'T'HH:mm"));
-    }
-  }, [open, offer.fecha_inicio, offer.fecha_fin]);
 
   const handleAccept = () => {
     if (!fechaInicio || !fechaFin) {
@@ -71,7 +68,9 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
       if (result.error) {
         toast.error(result.error);
       } else {
-        toast.success(offer.estado === "ocupada" ? "Oferta cancelada" : "Oferta retirada");
+        toast.success(
+          offer.estado === "ocupada" ? "Oferta cancelada" : "Oferta retirada",
+        );
         router.refresh();
       }
       setIsCancelling(false);
@@ -118,12 +117,21 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
         <CardContent>
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground">
-              {format(new Date(offer.fecha_inicio), "PPpp", { locale: es })} -{" "}
-              {format(new Date(offer.fecha_fin), "PPpp", { locale: es })}
+              {formatParkingDateTime(offer.fecha_inicio)} -{" "}
+              {formatParkingDateTime(offer.fecha_fin)}
             </div>
 
             {!isMyOffer && (
-              <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog
+                open={open}
+                onOpenChange={(nextOpen) => {
+                  if (nextOpen) {
+                    setFechaInicio(parkingDateTimeForInput(offer.fecha_inicio));
+                    setFechaFin(parkingDateTimeForInput(offer.fecha_fin));
+                  }
+                  setOpen(nextOpen);
+                }}
+              >
                 <DialogTrigger
                   render={
                     <Button className="w-full gap-2">
@@ -138,12 +146,14 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
                   </DialogHeader>
                   <div className="space-y-4 py-2">
                     <div className="space-y-2">
-                      <Label htmlFor={`aceptar-inicio-${offer.id}`}>Desde cuándo</Label>
+                      <Label htmlFor={`aceptar-inicio-${offer.id}`}>
+                        Desde cuándo
+                      </Label>
                       <Input
                         id={`aceptar-inicio-${offer.id}`}
                         type="datetime-local"
-                        min={format(new Date(offer.fecha_inicio), "yyyy-MM-dd'T'HH:mm")}
-                        max={format(new Date(offer.fecha_fin), "yyyy-MM-dd'T'HH:mm")}
+                        min={parkingDateTimeForInput(offer.fecha_inicio)}
+                        max={parkingDateTimeForInput(offer.fecha_fin)}
                         value={fechaInicio}
                         onChange={(event) => setFechaInicio(event.target.value)}
                         disabled={isPending}
@@ -151,12 +161,14 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`aceptar-fin-${offer.id}`}>Hasta cuándo</Label>
+                      <Label htmlFor={`aceptar-fin-${offer.id}`}>
+                        Hasta cuándo
+                      </Label>
                       <Input
                         id={`aceptar-fin-${offer.id}`}
                         type="datetime-local"
-                        min={format(new Date(offer.fecha_inicio), "yyyy-MM-dd'T'HH:mm")}
-                        max={format(new Date(offer.fecha_fin), "yyyy-MM-dd'T'HH:mm")}
+                        min={parkingDateTimeForInput(offer.fecha_inicio)}
+                        max={parkingDateTimeForInput(offer.fecha_fin)}
                         value={fechaFin}
                         onChange={(event) => setFechaFin(event.target.value)}
                         disabled={isPending}
@@ -164,8 +176,8 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Si eliges un tramo parcial, la oferta se partirá y solo se mantendrán
-                      tramos libres de 4h o más.
+                      Si eliges un tramo parcial, la oferta se partirá y solo se
+                      mantendrán tramos libres de 4h o más.
                     </p>
                   </div>
                   <DialogFooter>
@@ -185,7 +197,8 @@ export function ParkingOfferCard({ offer, isMyOffer }: ParkingOfferCardProps) {
               </Dialog>
             )}
 
-            {isMyOffer && (offer.estado === "activa" || offer.estado === "ocupada") ? (
+            {isMyOffer &&
+            (offer.estado === "activa" || offer.estado === "ocupada") ? (
               <Button
                 variant="destructive"
                 className="w-full gap-2"
