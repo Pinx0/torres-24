@@ -70,3 +70,25 @@ la seccion Cron del dashboard de Supabase. La limpieza funciona aunque nadie
 abra ParkShare y compara las fechas como instantes, sin depender de la zona
 horaria del servidor.
 Se ejecuta a las 00:00 UTC: la 01:00 en invierno y las 02:00 en verano en Madrid.
+
+### Paquetes: archivado de solicitudes pendientes
+
+La migracion `20261004000001_archive_stale_package_requests.sql` crea el job
+`packages-archive-stale-requests` en Supabase Cron. Cada dia a las 00:00 UTC
+archiva las solicitudes que llevan al menos 30 dias (720 horas) pendientes,
+aunque nadie abra la app. Al aplicar la migracion tambien archiva las antiguas.
+
+El estado pasa a `archivada`: dejan de aparecer en Pendientes y Mis solicitudes,
+pero el registro se conserva en la base de datos. Las aceptadas, completadas y
+canceladas conservan su estado. Las acciones de aceptar y cancelar comprueban
+el estado al actualizar para no reactivar una solicitud que el cron acaba de archivar.
+
+Aplica la migracion con `yarn supabase:push` en el proyecto Supabase vinculado.
+El job y su historial se pueden consultar en la seccion Cron del dashboard
+([documentacion de Supabase Cron](https://supabase.com/docs/guides/cron/quickstart)).
+
+La prueba SQL `tests/package-request-archival.sql` verifica la limpieza inicial,
+el job diario, el limite de 30 dias, cambios de zona horaria y la conservacion
+de los demas estados. Ejecutala con `psql -v ON_ERROR_STOP=1 -f
+tests/package-request-archival.sql` contra una base desechable con el esquema
+de paquetes; todos sus cambios se revierten al terminar.

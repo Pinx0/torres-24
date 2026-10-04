@@ -13,7 +13,7 @@ export interface PackageRequest {
   aceptante_usuario_id: string | null;
   aceptante_unidad_familiar_codigo: string | null;
   descripcion: string;
-  estado: "pendiente" | "aceptada" | "completada" | "cancelada";
+  estado: "pendiente" | "aceptada" | "completada" | "cancelada" | "archivada";
   fecha_aceptacion: string | null;
   fecha_expiracion: string | null;
   created_at: string;
@@ -496,6 +496,7 @@ export async function acceptRequest(
         ).toISOString(), // 1 month from now
       })
       .eq("id", requestId)
+      .eq("estado", "pendiente")
       .select()
       .single();
 
@@ -631,6 +632,7 @@ export async function cancelRequest(
       .from("solicitudes_paquetes")
       .update({ estado: "cancelada" })
       .eq("id", requestId)
+      .eq("estado", "pendiente")
       .select()
       .single();
 
