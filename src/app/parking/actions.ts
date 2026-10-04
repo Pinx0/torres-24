@@ -5,6 +5,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTransactionalEmail } from "@/lib/notifications/brevo";
 import { buildEmailForEvent } from "@/lib/notifications/email-events";
 import { getNeighborEmailsByFloor } from "@/lib/notifications/parking-recipients";
+import {
+  parkingDateTimeForInput,
+  parkingDateTimeToUtc,
+} from "@/lib/parking-date-time";
 
 export interface ParkingOffer {
   id: string;
@@ -342,11 +346,13 @@ export async function createParkingOffer(
       return { data: null, error: "Debes seleccionar una plaza de garaje" };
     }
 
-    if (!isValidRange(fechaInicio, fechaFin)) {
+    const inicioUtc = parkingDateTimeToUtc(fechaInicio);
+    const finUtc = parkingDateTimeToUtc(fechaFin);
+    if (!inicioUtc || !finUtc || !isValidRange(inicioUtc, finUtc)) {
       return { data: null, error: "El rango de fechas no es válido" };
     }
 
-    if (!isEndNotExpired(fechaFin)) {
+    if (!isEndNotExpired(finUtc)) {
       return {
         data: null,
         error: "La fecha de fin no puede estar en el pasado",
@@ -383,8 +389,8 @@ export async function createParkingOffer(
       .select("id")
       .eq("garaje_codigo", garajeCodigo)
       .eq("estado", "activa")
-      .lt("fecha_inicio", fechaFin)
-      .gt("fecha_fin", fechaInicio)
+      .lt("fecha_inicio", finUtc)
+      .gt("fecha_fin", inicioUtc)
       .limit(1);
 
     if (overlapError) {
@@ -404,8 +410,8 @@ export async function createParkingOffer(
       .insert({
         garaje_codigo: garajeCodigo,
         unidad_familiar_codigo: codigo,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
+        fecha_inicio: inicioUtc,
+        fecha_fin: finUtc,
         estado: "activa",
       })
       .select()
@@ -442,11 +448,13 @@ export async function createParkingRequest(
       return { data: null, error: "La planta solicitada no es válida" };
     }
 
-    if (!isValidRange(fechaInicio, fechaFin)) {
+    const inicioUtc = parkingDateTimeToUtc(fechaInicio);
+    const finUtc = parkingDateTimeToUtc(fechaFin);
+    if (!inicioUtc || !finUtc || !isValidRange(inicioUtc, finUtc)) {
       return { data: null, error: "El rango de fechas no es válido" };
     }
 
-    if (!isEndNotExpired(fechaFin)) {
+    if (!isEndNotExpired(finUtc)) {
       return {
         data: null,
         error: "La fecha de fin no puede estar en el pasado",
@@ -467,8 +475,8 @@ export async function createParkingRequest(
       .insert({
         solicitante_unidad_familiar_codigo: familyCode,
         planta_solicitada: plantaSolicitada,
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
+        fecha_inicio: inicioUtc,
+        fecha_fin: finUtc,
         estado: "pendiente",
       })
       .select()
@@ -500,8 +508,8 @@ export async function createParkingRequest(
           data: {
             solicitudId: request.id,
             plantaSolicitada,
-            fechaInicio,
-            fechaFin,
+            fechaInicio: parkingDateTimeForInput(request.fecha_inicio),
+            fechaFin: parkingDateTimeForInput(request.fecha_fin),
             solicitanteNombre,
           },
         });
@@ -548,11 +556,13 @@ export async function acceptParkingOffer(
   fechaFin: string,
 ): Promise<{ data: ParkingRequest | null; error: string | null }> {
   try {
-    if (!isValidRange(fechaInicio, fechaFin)) {
+    const inicioUtc = parkingDateTimeToUtc(fechaInicio);
+    const finUtc = parkingDateTimeToUtc(fechaFin);
+    if (!inicioUtc || !finUtc || !isValidRange(inicioUtc, finUtc)) {
       return { data: null, error: "El rango de fechas no es válido" };
     }
 
-    if (!isEndNotExpired(fechaFin)) {
+    if (!isEndNotExpired(finUtc)) {
       return {
         data: null,
         error: "La fecha de fin no puede estar en el pasado",
@@ -588,8 +598,8 @@ export async function acceptParkingOffer(
 
     const offerStart = new Date(offer.fecha_inicio);
     const offerEnd = new Date(offer.fecha_fin);
-    const acceptStart = new Date(fechaInicio);
-    const acceptEnd = new Date(fechaFin);
+    const acceptStart = new Date(inicioUtc);
+    const acceptEnd = new Date(finUtc);
 
     if (acceptStart < offerStart || acceptEnd > offerEnd) {
       return {
@@ -851,8 +861,8 @@ export async function offerParkingForRequest(
             data: {
               solicitudId: updatedRequest.id,
               plantaSolicitada: updatedRequest.planta_solicitada,
-              fechaInicio: updatedRequest.fecha_inicio,
-              fechaFin: updatedRequest.fecha_fin,
+              fechaInicio: parkingDateTimeForInput(updatedRequest.fecha_inicio),
+              fechaFin: parkingDateTimeForInput(updatedRequest.fecha_fin),
               concedenteNombre,
               concedenteUnidad: familyCode,
               plazaCodigo: garaje.codigo,

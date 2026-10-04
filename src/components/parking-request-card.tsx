@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { CalendarClock, CarFront, User, X } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale/es";
+import {
+  formatParkingDateTime,
+  parkingDateTimeForInput,
+} from "@/lib/parking-date-time";
 import {
   ParkingRequest,
   cancelParkingOffer,
@@ -54,8 +56,8 @@ export function ParkingRequestCard({
     !isMyRequest &&
     request.estado === "pendiente" &&
     matchingGarajes.length > 0;
-  const formattedInicio = format(new Date(request.fecha_inicio), "yyyy-MM-dd'T'HH:mm");
-  const formattedFin = format(new Date(request.fecha_fin), "yyyy-MM-dd'T'HH:mm");
+  const formattedInicio = parkingDateTimeForInput(request.fecha_inicio);
+  const formattedFin = parkingDateTimeForInput(request.fecha_fin);
   const hasOfferDetails =
     request.estado === "aceptada" &&
     (request.oferta_garaje_codigo || request.oferta_unidad_familiar_codigo);
@@ -159,7 +161,9 @@ export function ParkingRequestCard({
                 <CalendarClock className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base mb-1">Necesidad de plaza</CardTitle>
+                <CardTitle className="text-base mb-1">
+                  Necesidad de plaza
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   Planta solicitada: {request.planta_solicitada}
                 </p>
@@ -173,12 +177,14 @@ export function ParkingRequestCard({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="size-4" />
               <span>
-                {isMyRequest ? "Solicitado por ti" : `Solicitado por: ${solicitanteLabel}`}
+                {isMyRequest
+                  ? "Solicitado por ti"
+                  : `Solicitado por: ${solicitanteLabel}`}
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
-              {format(new Date(request.fecha_inicio), "PPpp", { locale: es })} -{" "}
-              {format(new Date(request.fecha_fin), "PPpp", { locale: es })}
+              {formatParkingDateTime(request.fecha_inicio)} -{" "}
+              {formatParkingDateTime(request.fecha_fin)}
             </div>
 
             {hasOfferDetails ? (
@@ -192,7 +198,8 @@ export function ParkingRequestCard({
                 <div className="flex items-center gap-2">
                   <User className="size-4" />
                   <span>
-                    Ofertada por: {request.oferta_unidad_familiar_codigo ?? "N/D"}
+                    Ofertada por:{" "}
+                    {request.oferta_unidad_familiar_codigo ?? "N/D"}
                   </span>
                 </div>
               </div>
@@ -227,7 +234,9 @@ export function ParkingRequestCard({
                         <select
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           value={garajeCodigo}
-                          onChange={(event) => setGarajeCodigo(event.target.value)}
+                          onChange={(event) =>
+                            setGarajeCodigo(event.target.value)
+                          }
                           disabled={isPending}
                           required
                         >
@@ -246,7 +255,9 @@ export function ParkingRequestCard({
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`oferta-inicio-${request.id}`}>Desde cuándo</Label>
+                      <Label htmlFor={`oferta-inicio-${request.id}`}>
+                        Desde cuándo
+                      </Label>
                       <Input
                         id={`oferta-inicio-${request.id}`}
                         type="datetime-local"
@@ -256,7 +267,9 @@ export function ParkingRequestCard({
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor={`oferta-fin-${request.id}`}>Hasta cuándo</Label>
+                      <Label htmlFor={`oferta-fin-${request.id}`}>
+                        Hasta cuándo
+                      </Label>
                       <Input
                         id={`oferta-fin-${request.id}`}
                         type="datetime-local"
@@ -275,7 +288,10 @@ export function ParkingRequestCard({
                     >
                       Cancelar
                     </Button>
-                    <Button onClick={handleOffer} disabled={isPending || !garajeCodigo}>
+                    <Button
+                      onClick={handleOffer}
+                      disabled={isPending || !garajeCodigo}
+                    >
                       {isPending ? "Ofertando..." : "Confirmar oferta"}
                     </Button>
                   </DialogFooter>
@@ -291,7 +307,9 @@ export function ParkingRequestCard({
                 disabled={isPending || isCancelling}
               >
                 <X className="size-4" />
-                {isPending || isCancelling ? "Cancelando..." : "Cancelar solicitud"}
+                {isPending || isCancelling
+                  ? "Cancelando..."
+                  : "Cancelar solicitud"}
               </Button>
             ) : null}
 
@@ -303,7 +321,9 @@ export function ParkingRequestCard({
                 disabled={isPending || isOfferCancelling}
               >
                 <X className="size-4" />
-                {isPending || isOfferCancelling ? "Cancelando..." : "Retirar oferta"}
+                {isPending || isOfferCancelling
+                  ? "Cancelando..."
+                  : "Retirar oferta"}
               </Button>
             ) : null}
           </div>
