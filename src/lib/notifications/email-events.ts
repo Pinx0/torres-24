@@ -36,6 +36,15 @@ export type ParkingRequestAcceptedParams = {
   plazaCodigo: string;
 };
 
+export type CommunityPublicationParams = {
+  titulo: string;
+  descripcion: string;
+  autorNombre: string;
+  autorUnidad: string;
+  fechaCreacion: string;
+  urlDetalle: string;
+};
+
 export type EmailEventPayload =
   | { event: "parking_request_same_floor"; data: ParkingRequestSameFloorParams }
   | {
@@ -43,12 +52,40 @@ export type EmailEventPayload =
       data: PackageRequestSameStairwayParams;
     }
   | { event: "package_request_accepted"; data: PackageRequestAcceptedParams }
-  | { event: "parking_request_accepted"; data: ParkingRequestAcceptedParams };
+  | { event: "parking_request_accepted"; data: ParkingRequestAcceptedParams }
+  | {
+      event: "poll_created";
+      data: CommunityPublicationParams & { encuestaId: string };
+    }
+  | {
+      event: "incident_created";
+      data: CommunityPublicationParams & { incidenciaId: string };
+    }
+  | {
+      event: "document_created";
+      data: CommunityPublicationParams & {
+        documentoId: string;
+        tipoDocumento: string;
+      };
+    };
 
 export function buildEmailForEvent(
   payload: EmailEventPayload,
 ): { templateId: number; params: Record<string, unknown> } | null {
   switch (payload.event) {
+    case "poll_created":
+    case "incident_created":
+    case "document_created": {
+      const templateId = {
+        poll_created: EMAIL_TEMPLATE_IDS.pollCreated,
+        incident_created: EMAIL_TEMPLATE_IDS.incidentCreated,
+        document_created: EMAIL_TEMPLATE_IDS.documentCreated,
+      }[payload.event];
+
+      return isValidTemplateId(templateId)
+        ? { templateId, params: { ...payload.data } }
+        : null;
+    }
     case "parking_request_same_floor": {
       const templateId = EMAIL_TEMPLATE_IDS.parkingRequestSameFloor;
 

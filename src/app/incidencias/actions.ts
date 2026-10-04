@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyCommunityPublication } from "@/lib/notifications/community-publication";
 import {
   buildIncidentImagePath,
   createIncidentDownloadUrl,
@@ -402,6 +403,16 @@ export async function createIncidencia(
         };
       }
     }
+
+    await notifyCommunityPublication({
+      event: "incident_created",
+      id: data.id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      authorUserId: userId,
+      authorFamilyCode: familyCode,
+      createdAt: data.created_at,
+    });
 
     return { data: data as Incidencia, error: null };
   } catch (error) {
