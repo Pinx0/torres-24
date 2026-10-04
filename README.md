@@ -42,3 +42,17 @@ Configura las variables de Supabase para habilitar subida y descarga en Storage.
 ### Brevo (Avisos por email)
 
 Configura las variables de Brevo para habilitar el envio de avisos por email.
+
+### ParkShare: solicitudes caducadas
+
+La migracion `20261004000000_cancel_expired_parking_requests.sql` activa un job
+de Supabase Cron que cancela una vez al dia las solicitudes pendientes cuya
+fecha de fin ya ha pasado. Tambien cancela las antiguas al aplicar la migracion.
+Las solicitudes aceptadas conservan su estado y el historico no se elimina.
+
+Aplica la migracion con `yarn supabase:push` en el proyecto Supabase vinculado.
+El job `parkshare-cancel-expired-requests` y su historial se pueden consultar en
+la seccion Cron del dashboard de Supabase. La limpieza funciona aunque nadie
+abra ParkShare y compara las fechas como instantes, sin depender de la zona
+horaria del servidor.
+Se ejecuta a las 00:00 UTC: la 01:00 en invierno y las 02:00 en verano en Madrid.
