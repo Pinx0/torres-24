@@ -12,31 +12,38 @@ interface IncidentCardProps {
 }
 
 export function IncidentCard({ incident }: IncidentCardProps) {
-  const statusBadge = incident.estado === "resuelta" ? (
-    <span className="inline-flex items-center rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 dark:text-green-500">
-      Resuelta
-    </span>
-  ) : (
-    <span className="inline-flex items-center rounded-full bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:text-yellow-500">
-      Activa
-    </span>
-  );
+  const statusBadge =
+    incident.estado === "resuelta" ? (
+      <span className="inline-flex shrink-0 items-center rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 dark:text-green-500">
+        Resuelta
+      </span>
+    ) : (
+      <span className="inline-flex shrink-0 items-center rounded-full bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-600 dark:text-yellow-500">
+        Activa
+      </span>
+    );
 
   return (
-    <Link href={`/incidencias/${incident.id}`} className="group">
+    <Link href={`/incidencias/${incident.id}`} className="group block min-w-0">
       <Card className="hover:shadow-lg transition-all duration-200 border-border/50 h-full">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
+        <CardHeader className="grid-cols-1">
+          <div className="flex min-w-0 items-start justify-between gap-4">
             <div className="flex items-start gap-3 flex-1 min-w-0">
               <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base mb-1 truncate">{incident.titulo}</CardTitle>
-                <p className="text-sm text-muted-foreground">
+                <CardTitle
+                  className="mb-1 line-clamp-2 text-base leading-snug break-words"
+                  title={incident.titulo}
+                >
+                  {incident.titulo}
+                </CardTitle>
+                <p className="text-sm text-muted-foreground break-words">
                   Reportada por:{" "}
                   {incident.autor_display &&
-                    incident.autor_display !== incident.autor_unidad_familiar_codigo
+                  incident.autor_display !==
+                    incident.autor_unidad_familiar_codigo
                     ? `${incident.autor_display} · ${incident.autor_unidad_familiar_codigo}`
                     : incident.autor_unidad_familiar_codigo}
                 </p>
@@ -51,7 +58,10 @@ export function IncidentCard({ incident }: IncidentCardProps) {
               {incident.descripcion}
             </p>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Creada: {format(new Date(incident.created_at), "PPpp", { locale: es })}</span>
+              <span>
+                Creada:{" "}
+                {format(new Date(incident.created_at), "PPpp", { locale: es })}
+              </span>
               {incident.adjuntos_count ? (
                 <span className="inline-flex items-center gap-1">
                   <Image className="size-3.5" />

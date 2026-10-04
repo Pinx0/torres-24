@@ -57,6 +57,14 @@ La plantilla de documento tambien recibe `tipoDocumento` con su etiqueta legible
 Los enlaces apuntan a `https://torres24.org`; las descargas se consultan desde la
 app, sin enviar URLs temporales de Storage por correo.
 
+Al comentar una incidencia tambien se avisa a todos los vecinos registrados con
+vivienda asociada, excepto a quien escribe el comentario, usando la plantilla
+**8** (Nuevo comentario en incidencia). Recibe `incidenciaId`, `comentarioId`,
+`titulo` de la incidencia, `mensaje` del comentario, `autorNombre`, `autorUnidad`,
+`fechaCreacion` en `Europe/Madrid` y `urlDetalle` de la conversacion. El aviso se
+envia despues de guardar el comentario y sus adjuntos; los errores de email no
+impiden que el comentario quede creado.
+
 ### ParkShare: solicitudes caducadas
 
 La migracion `20261004000000_cancel_expired_parking_requests.sql` activa un job

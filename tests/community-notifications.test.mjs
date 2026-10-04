@@ -91,7 +91,18 @@ function fixture(options = {}) {
             error: null,
           };
         } else {
-          let rows = members.filter(
+          const sourceRows =
+            options.rows?.[table] ??
+            (table === "incidencias"
+              ? [
+                  {
+                    id: "incident-id",
+                    titulo: "Incidencia existente",
+                    autor_usuario_id: "neighbour",
+                  },
+                ]
+              : members);
+          let rows = sourceRows.filter(
             (member) => !equal || member[equal[0]] === equal[1],
           );
           if (range) {
@@ -234,6 +245,20 @@ const flows = [
         sizeBytes: 123,
       }),
   },
+  {
+    name: "comentario de incidencia",
+    file: "src/app/incidencias/actions.ts",
+    templateId: 8,
+    idParam: "comentarioId",
+    url: "/incidencias/incident-id",
+    tables: ["incidencias_comentarios", "incidencias_adjuntos"],
+    create: (actions) =>
+      actions.createIncidenciaComentario(
+        "incident-id",
+        " Mensaje\nSegunda línea ",
+        [{ path: "comment-image.jpg", mimeType: "image/jpeg", sizeBytes: 123 }],
+      ),
+  },
 ];
 
 for (const flow of flows) {
@@ -261,6 +286,12 @@ for (const flow of flows) {
         [flow.idParam]: "publication-id",
       };
       if (flow.templateId === 7) expected.tipoDocumento = "Libro del edificio";
+      if (flow.templateId === 8) {
+        expected.titulo = "Incidencia existente";
+        delete expected.descripcion;
+        expected.incidenciaId = "incident-id";
+        expected.mensaje = "Mensaje\nSegunda línea";
+      }
       assert.deepEqual(send.params, expected);
     }
   });
@@ -383,5 +414,49 @@ test("membership query failure preserves a saved document and sends nothing", as
   const result = await flows[2].create(f.load(flows[2].file));
   assert.equal(result.error, null);
   assert.deepEqual(f.writes, ["documentos"]);
+  assert.deepEqual(f.sends, []);
+});
+
+test("comments notify neighbours who have never participated in that incident", async () => {
+  const f = fixture();
+  const result = await flows[3].create(f.load(flows[3].file));
+  assert.equal(result.error, null);
+  // The same-home user is neither the incident author nor a previous participant.
+  assert.ok(
+    f.sends.some((send) => send.to[0].email === "same-home@example.test"),
+  );
+});
+
+test("failure to look up the incident title preserves the saved comment and sends nothing", async () => {
+  const f = fixture({ failTable: "incidencias" });
+  const result = await flows[3].create(f.load(flows[3].file));
+  assert.equal(result.error, null);
+  assert.equal(result.data.mensaje, "Mensaje\nSegunda línea");
+  assert.deepEqual(f.writes, flows[3].tables);
+  assert.deepEqual(f.sends, []);
+});
+
+test("comments without attachments notify after saving the text", async () => {
+  const f = fixture({ createdAt: "2026-01-15T12:00:00Z" });
+  const actions = f.load("src/app/incidencias/actions.ts");
+  const result = await actions.createIncidenciaComentario(
+    "incident-id",
+    "Una actualización",
+  );
+  assert.equal(result.error, null);
+  assert.equal(f.sends.length, 2);
+  for (const send of f.sends) {
+    assert.deepEqual(send.writes, ["incidencias_comentarios"]);
+    assert.equal(send.params.fechaCreacion, "15/01/2026 13:00");
+    assert.equal(send.templateId, 8);
+  }
+});
+
+test("an empty comment cannot be saved or emailed", async () => {
+  const f = fixture();
+  const actions = f.load("src/app/incidencias/actions.ts");
+  const result = await actions.createIncidenciaComentario("incident-id", "  ");
+  assert.ok(result.error);
+  assert.deepEqual(f.writes, []);
   assert.deepEqual(f.sends, []);
 });
