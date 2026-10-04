@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 8
+  version: 10
   cacheKey: 10c0
 
 "@alloc/quick-lru@npm:^5.2.0":
@@ -4166,6 +4166,7 @@ __metadata:
   resolution: "my-app@workspace:."
   dependencies:
     "@base-ui/react": "npm:^1.1.0"
+    "@date-fns/tz": "npm:^1.4.1"
     "@getbrevo/brevo": "npm:^3.0.1"
     "@supabase/ssr": "npm:^0.8.0"
     "@supabase/supabase-js": "npm:^2.91.0"
