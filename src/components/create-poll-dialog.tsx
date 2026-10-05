@@ -2,14 +2,16 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, Vote } from "lucide-react";
 import { toast } from "sonner";
 import { createPoll, createPollOptionUpload } from "@/app/votaciones/actions";
+import { SharePollWhatsAppButton } from "@/components/share-poll-whatsapp-button";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ALLOWED_FILE_TYPES = new Set([
@@ -32,6 +34,7 @@ interface CreatePollDialogProps {
 export function CreatePollDialog({ onSuccess }: CreatePollDialogProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [createdPoll, setCreatedPoll] = useState<{ id: string; titulo: string } | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [options, setOptions] = useState<PollOptionDraft[]>([
@@ -157,8 +160,8 @@ export function CreatePollDialog({ onSuccess }: CreatePollDialogProps) {
         opciones: optionsPayload,
       });
 
-      if (result.error) {
-        toast.error(result.error);
+      if (result.error || !result.data) {
+        toast.error(result.error || "No se pudo crear la encuesta");
         return;
       }
 
@@ -169,14 +172,20 @@ export function CreatePollDialog({ onSuccess }: CreatePollDialogProps) {
         { id: crypto.randomUUID(), texto: "", file: null },
         { id: crypto.randomUUID(), texto: "", file: null },
       ]);
-      setOpen(false);
+      setCreatedPoll({ id: result.data.id, titulo: result.data.titulo });
       router.refresh();
       onSuccess?.();
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen);
+        if (nextOpen) setCreatedPoll(null);
+      }}
+    >
       <DialogTrigger
         render={
           <Button className="gap-2 shadow-sm">
@@ -185,15 +194,34 @@ export function CreatePollDialog({ onSuccess }: CreatePollDialogProps) {
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className={createdPoll ? "sm:max-w-lg" : "sm:max-w-2xl"}>
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary">
               <Vote className="w-5 h-5" />
             </div>
-            <DialogTitle>Nueva encuesta</DialogTitle>
+            <DialogTitle>{createdPoll ? "Encuesta creada" : "Nueva encuesta"}</DialogTitle>
           </div>
         </DialogHeader>
+        {createdPoll ? (
+          <>
+            <div className="space-y-4 py-4">
+              <p className="font-medium break-words">{createdPoll.titulo}</p>
+              <p className="text-sm text-muted-foreground">
+                Compártela con los vecinos. En WhatsApp podrás elegir el grupo y enviar el mensaje preparado.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <SharePollWhatsAppButton pollId={createdPoll.id} title={createdPoll.titulo} />
+                <Link href={`/votaciones/${createdPoll.id}`} className={buttonVariants({ variant: "outline" })}>
+                  Ver votación
+                </Link>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" onClick={() => setOpen(false)}>Cerrar</Button>
+            </DialogFooter>
+          </>
+        ) : (
         <form onSubmit={handleSubmit}>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
@@ -306,6 +334,7 @@ export function CreatePollDialog({ onSuccess }: CreatePollDialogProps) {
             </Button>
           </DialogFooter>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -36,13 +36,16 @@ export type ParkingRequestAcceptedParams = {
   plazaCodigo: string;
 };
 
-export type CommunityPublicationParams = {
+export type CommunityNotificationParams = {
   titulo: string;
-  descripcion: string;
   autorNombre: string;
   autorUnidad: string;
   fechaCreacion: string;
   urlDetalle: string;
+};
+
+export type CommunityPublicationParams = CommunityNotificationParams & {
+  descripcion: string;
 };
 
 export type EmailEventPayload =
@@ -67,6 +70,14 @@ export type EmailEventPayload =
         documentoId: string;
         tipoDocumento: string;
       };
+    }
+  | {
+      event: "incident_comment_created";
+      data: CommunityNotificationParams & {
+        incidenciaId: string;
+        comentarioId: string;
+        mensaje: string;
+      };
     };
 
 export function buildEmailForEvent(
@@ -82,6 +93,12 @@ export function buildEmailForEvent(
         document_created: EMAIL_TEMPLATE_IDS.documentCreated,
       }[payload.event];
 
+      return isValidTemplateId(templateId)
+        ? { templateId, params: { ...payload.data } }
+        : null;
+    }
+    case "incident_comment_created": {
+      const templateId = EMAIL_TEMPLATE_IDS.incidentCommentCreated;
       return isValidTemplateId(templateId)
         ? { templateId, params: { ...payload.data } }
         : null;

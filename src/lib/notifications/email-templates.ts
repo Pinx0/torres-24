@@ -6,6 +6,7 @@ export const EMAIL_TEMPLATE_IDS = {
   pollCreated: 5,
   incidentCreated: 6,
   documentCreated: 7,
+  incidentCommentCreated: 8,
 } as const;
 
 export function isValidTemplateId(templateId: number) {

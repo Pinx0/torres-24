@@ -12,6 +12,7 @@
     "types:check": "tsc --noEmit",
     "test:parking": "node --experimental-strip-types --test tests/parking-date-time.test.mjs",
     "test:notifications": "node --test tests/community-notifications.test.mjs",
+    "test:polls": "node --experimental-strip-types --test tests/poll-login-redirect.test.mjs",
     "supabase": "npx supabase",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",

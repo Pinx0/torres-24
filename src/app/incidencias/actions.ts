@@ -505,6 +505,38 @@ export async function createIncidenciaComentario(
       }
     }
 
+    try {
+      const { data: incidencia, error: incidenciaError } = await adminClient
+        .from("incidencias")
+        .select("titulo")
+        .eq("id", data.incidencia_id)
+        .single();
+
+      if (incidenciaError || !incidencia) {
+        console.error(
+          "No se pudo obtener la incidencia para el aviso:",
+          incidenciaError,
+        );
+      } else {
+        await notifyCommunityPublication({
+          event: "incident_comment_created",
+          id: data.id,
+          incidenciaId: data.incidencia_id,
+          titulo: incidencia.titulo,
+          descripcion: null,
+          mensaje: data.mensaje,
+          authorUserId: userId,
+          authorFamilyCode: familyCode,
+          createdAt: data.created_at,
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error preparando aviso de comentario de incidencia:",
+        error,
+      );
+    }
+
     return { data: data as IncidenciaComentario, error: null };
   } catch (error) {
     console.error("Error en createIncidenciaComentario:", error);

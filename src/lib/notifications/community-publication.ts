@@ -7,7 +7,7 @@ import { DOCUMENT_TYPE_LABELS, type DocumentType } from "@/lib/document-types";
 import { sendTransactionalEmail } from "./brevo";
 import {
   buildEmailForEvent,
-  type CommunityPublicationParams,
+  type CommunityNotificationParams,
   type EmailEventPayload,
 } from "./email-events";
 
@@ -21,6 +21,7 @@ type Publication = {
 } & (
   | { event: "poll_created" | "incident_created" }
   | { event: "document_created"; tipo: DocumentType }
+  | { event: "incident_comment_created"; incidenciaId: string; mensaje: string }
 );
 
 const PAGE_SIZE = 1000;
@@ -80,9 +81,8 @@ export async function notifyCommunityPublication(publication: Publication) {
 
     if (emails.size === 0) return;
 
-    const common: CommunityPublicationParams = {
+    const common: CommunityNotificationParams = {
       titulo: publication.titulo,
-      descripcion: publication.descripcion || "Sin descripción adicional.",
       autorNombre:
         typeof metadataName === "string" && metadataName.trim()
           ? metadataName.trim()
@@ -100,9 +100,18 @@ export async function notifyCommunityPublication(publication: Publication) {
         APP_URL +
         (publication.event === "poll_created"
           ? `/votaciones/${encodeURIComponent(publication.id)}`
-          : publication.event === "incident_created"
-            ? `/incidencias/${encodeURIComponent(publication.id)}`
-            : "/documentacion"),
+          : publication.event === "document_created"
+            ? "/documentacion"
+            : `/incidencias/${encodeURIComponent(
+                publication.event === "incident_comment_created"
+                  ? publication.incidenciaId
+                  : publication.id,
+              )}`),
+    };
+
+    const publicationParams = {
+      ...common,
+      descripcion: publication.descripcion || "Sin descripción adicional.",
     };
 
     let payload: EmailEventPayload;
@@ -110,22 +119,33 @@ export async function notifyCommunityPublication(publication: Publication) {
       case "poll_created":
         payload = {
           event: publication.event,
-          data: { ...common, encuestaId: publication.id },
+          data: { ...publicationParams, encuestaId: publication.id },
         };
         break;
       case "incident_created":
         payload = {
           event: publication.event,
-          data: { ...common, incidenciaId: publication.id },
+          data: { ...publicationParams, incidenciaId: publication.id },
         };
         break;
       case "document_created":
         payload = {
           event: publication.event,
           data: {
-            ...common,
+            ...publicationParams,
             documentoId: publication.id,
             tipoDocumento: DOCUMENT_TYPE_LABELS[publication.tipo],
+          },
+        };
+        break;
+      case "incident_comment_created":
+        payload = {
+          event: publication.event,
+          data: {
+            ...common,
+            incidenciaId: publication.incidenciaId,
+            comentarioId: publication.id,
+            mensaje: publication.mensaje,
           },
         };
         break;
